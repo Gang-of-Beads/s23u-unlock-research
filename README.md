@@ -31,6 +31,9 @@
 - Root：KernelSU-Next **临时 root** 可稳定复现（BOPE 载荷，约 60 s），**重启即失效**；
   `Su` 给 `Shell` 授权后 `adb shell su` 可用。持久化（刷 patched `init_boot`）卡在 `-5`。
 - `devinfo+0x0d`（IsUnlocked）被写成 `1` 并跨重启保留，但仍是 `green`、仍 `-5`。
+- 有 root 后试过直接 dd 写 patched `init_boot`：**写得进去，但开机 AVB 拒绝**（Security Error 界面）。
+  「临时变永久」要过两道门（Odin 的 KG 内容校验 + 开机 AVB 验签），dd 只买到第一道（`docs/findings.md` §28）。
+- 已刷回原厂 `init_boot` 并恢复临时 root。
 - `steady` 分区被写入过实验数据，原样备份在 `/data/local/tmp/steady.bak`。
 
 ## 已打通 / 卡点

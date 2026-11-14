@@ -698,3 +698,21 @@ ESI 块只是附属数据。这也解释了为什么换任何块内容 `emInit` 
 本地自足路径已耗尽。EM 通道、steady 注入、段格式、token 灌入通道全部打通，
 但 `emInit`/`emTokenInstall` 都需要一份**三星签名的 token**；KG 侧则需要租户登记或能过 TZ 的真证书。
 两条都是外部输入。详见 `docs/summary.md` 的「三条路」。
+
+## 28. 用 root 直接 dd 写 `init_boot`：绕过了 Odin 的 KG 检查，但被开机 AVB 拒
+
+有 root 后想到一层还没试过的：`-5` 是 **Odin 会话**里的 KG 内容校验，那就不走 Odin，直接 dd 分区。
+
+- 备份原厂：`/data/local/tmp/init_boot.stock`（sha256 `72201800…`，与固件里的 `init_boot.img` 一致）
+- `dd if=init_boot.ksu.img of=/dev/block/by-name/init_boot` → 写完回读 sha256 与源完全一致
+- `adb reboot` → **开机卡在 Security Error「已被锁定」界面**，USB 不枚举、进不了系统
+
+结论分两层，很清楚：
+
+1. **KG 检查确实只在 Odin 会话里**，dd 能物理写进去（内容校验没拦住我们）；
+2. 但**开机时的 AVB/签名校验是另一道门**：bootloader 还是 locked + green，改过的 `init_boot`
+   与未改的 `vbmeta` 摘要对不上 → 直接 Security Error。
+
+所以「临时 root 变永久」要过的是**两道**门，dd 只买到第一道的门票。恢复方式：进 Download 模式，
+`heimdall flash --INIT_BOOT /tmp/fwimg/init_boot.img`（分区名是全大写 `INIT_BOOT`，写成小写会被 PIT 拒），
+刷原厂内容在 KG `Active` 下是放行的，刷完正常开机、再重跑 `temp_root.py` 即可恢复 root。

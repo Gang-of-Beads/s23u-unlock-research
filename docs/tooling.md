@@ -269,3 +269,14 @@ adb shell getprop knox.kg.state                    # 期望不再是 Active
 
 判读：`install rc=0` 才算成功；`0xf02d0010` = token 解析/ID 阶段失败（格式不对）；
 `0xd0010062/63` = steady 读失败（多半是没改名成 emservice）。
+
+## 刷回原厂 init_boot（救急）
+
+分区名在 PIT 里是**全大写 `INIT_BOOT`**（`/tmp/pitmap.json` 的 `map` 可查），小写会被 "does not exist in the specified PIT" 拒。
+原厂镜像必须来自同版本固件（`/tmp/fwimg/init_boot.img`，sha256 应与分区原始内容一致）：
+
+```bash
+/tmp/heimdall2/build/bin/heimdall flash --INIT_BOOT /tmp/fwimg/init_boot.img
+```
+
+KG `Active` 下刷原厂内容是放行的；刷完正常开机，再重跑 `scripts/temp_root.py` 恢复 root。
