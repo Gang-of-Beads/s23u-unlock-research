@@ -1201,3 +1201,16 @@ SamFrew 的文件链要走 CF 的 JS 挑战，`curl`（含完整浏览器头）�
 我们拿到的 `0xf01e0010` 更早（另一处），而 `0xf0050014` 是最初的解析失败。
 下一步需要一个能打印"走到哪一条分支"的探针（目前只能靠错误码区分），
 建议顺序：先把长度和 ITL 语法按 `0xece60`–`0xed0b8` 的字符分支反出来，再对齐计数器。
+
+### L4 修正：magic 不是 `ITL`，而是和 token 同一处常量 `3f e4 e4`
+
+在 0x7e0c 处：`memcmp(ctx+0x2ff8a, 0xf43de, 3)`，而 0xf43de 就是之前 token 那条线里的
+`3f e4 e4`。日志字符串 `Unknown ITL magic(%02x/%02x/%02x)` 在 0xf43e2（紧跟常量之后），
+所以日志里打印的是 **被比较的那三个字节**，不是我们以为的 "ITL" 字面量。
+
+但把 `3f e4 e4` 放到开头（以及 `[len]+magic`、`[4 字节]+magic`、`magic+[计数器]` 四种排布）**都还是 `0xf01e0010`**。
+结合周围字符串：这条路径叫 `EM_CMD_RECOVERY_ESS_V1` / `EM_CMD_REQ_RECOVERY_ESS_V1`，
+附近还有 `em_ess_encrypt_message`、`em_crypto_verify_cert` —— 高度怀疑 **recovery 数据是 ESS 报文格式**
+（要被证书加密/包一层 ESS 外壳），所以直接塞裸数据连 magic 都对不上位置。
+
+若成立，L4 最终也会回到"需要那张工程证书"。这条先记着，等证书线索有进展再回头。
