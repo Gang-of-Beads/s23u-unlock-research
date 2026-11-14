@@ -28,7 +28,7 @@
 - `resetRPMB` / `setCheckingState` / `unlockScreen` / `kg30_*`：全部无效。
 - 自签 KG 证书 7 种组合：TZ 一律 `4097`；PEM 甚至解析阶段就 `264`。
 - `reboot edl`、misc BCB `boot-into-edl`：都只回普通重启。
-- 只有 `TOKE`/`NNTC`/ESI 块而无 token 灌入：TA 一律 `0xf02d0010`。
+- 只有 `TOKE`/`NNTC`/ESI 块/`3f e4 e4` 前缀而无真 token：TA 一律 `0xf02d0010`（该码被多条分支共用）。
 - **用 root 直接 dd 写 patched `init_boot`**：写进去了，但开机 AVB 拒绝 → Security Error 界面
   （KG 检查只在 Odin 会话里，dd 能过；kill 掉的是开机验签这第二道门）。见 `findings.md` §28。
 - 恢复手法（已验证）：进 Download → `heimdall flash --INIT_BOOT /tmp/fwimg/init_boot.img`
@@ -78,6 +78,13 @@ EM token 更难，因为叠了三层不确定：
 3. **EDL（9008）** —— 绕开 `-5` 直接读写分区，可刷 patched `init_boot`、可随时救砖；
    需开背盖短接测试点或用 EDL 线。本机型号的 firehose loader 公开可得，
    另有 CVE-2026-25262（Sahara 任意写，可绕签名）作备选。限制：开机 AVB 仍在。
+
+## 环境现状的坑（做 EM/ESS 前先处理）
+
+- SIM 是 du（424/03），能收到 GSM（-81 dBm）但 `mVoiceRegState/mDataRegState=OUT_OF_SERVICE`、
+  `regState=NOT_REG_SEARCHING`，漫游已开也没注册上 → 没有蜂窝数据。
+- Wi-Fi 也没连上（保存的网络 `AstraTech` 当前不在扫描结果里），设备实际**完全离线**。
+- ESS 走 CP，没蜂窝到不了 ESS；KG 只要账号还登着，离线一般不影响（`Active` 稳定）。
 
 ## 风险与注意
 

@@ -726,3 +726,19 @@ ESI 块只是附属数据。这也解释了为什么换任何块内容 `emInit` 
 `usb_configuration_values`（`none/mtp/ptp/rndis/midi/audio_source`），定位到真正开关是
 `Settings.Secure.default_usb_configuration`。设 `mtp` 后**连续两次重启**都稳定起在 `mtp,adb`。
 `persist.sys.usb.config` 保持 `sec_charging,adb` 属正常（它记录"上一次实际状态"，不是默认值）。
+
+## 30. token 解析函数读到了细节，但仍不前进
+
+反编 TA 里 `0x9658` 起的那个函数（首个参数作 token 缓冲，第二、三个作输出）：
+
+- `0x96c4` 先 `memcpy(buf, ctx+0x50a, 10)`；
+- 随后 `0x96d8` 拿 `buf[0..3]` 与常量 `3f e4 e4`（VA 0xf43de）比较，**不等就返回 `0xf02d0010`** 并置 ctx 位。
+
+于是试了这些 token 前缀，全部仍是 `0xf02d0010`：
+`TOKE`、`NNTC`、ESI 块的 10 字节头（`4553491e004500000000`）、S24 整块、全零、`3f e4 e4`。
+
+说明这个函数是**令牌状态检查**（用 `ctx+0x50a` 覆盖前 10 字节），`emTokenInstall` 卡在它之前/别处，
+`0xf02d0010` 在 TA 里被多条分支共用，不能只按错误码判定走到了哪一步。
+
+注意：`EM_CMD_INSTALL_TOKEN` 字符串在 0xf3926，但它落在 rodata 段、反汇编只出 `<unknown>`，
+按 adrp/add 组合找不到引用，需要先按段重建映像再做 xref。
