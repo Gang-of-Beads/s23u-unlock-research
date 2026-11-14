@@ -1,0 +1,549 @@
+
+kgndk.so:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+0000000000007000 <.text>:
+    7184: d503249f     	bti	j
+    7188: d100e3a1     	sub	x1, x29, #0x38
+    718c: aa1703e0     	mov	x0, x23
+    7190: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7194: f81f03bf     	stur	xzr, [x29, #-0x10]
+    7198: b90033ff     	str	wzr, [sp, #0x30]
+    719c: b81c83bf     	stur	wzr, [x29, #-0x38]
+    71a0: 94001c46     	bl	0xe2b8 <AParcel_readInt32@plt>
+    71a4: 2a0003f6     	mov	w22, w0
+    71a8: 35006f00     	cbnz	w0, 0x7f88 <.text+0xf88>
+    71ac: b85c83a1     	ldur	w1, [x29, #-0x38]
+    71b0: 37f833c1     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    71b4: 52884808     	mov	w8, #0x4240             // =16960
+    71b8: 72a001e8     	movk	w8, #0xf, lsl #16
+    71bc: 6b08003f     	cmp	w1, w8
+    71c0: 54003308     	b.hi	0x7820 <.text+0x820>
+    71c4: 34000061     	cbz	w1, 0x71d0 <.text+0x1d0>
+    71c8: d10083a0     	sub	x0, x29, #0x20
+    71cc: 94001c41     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    71d0: f81c83bf     	stur	xzr, [x29, #-0x38]
+    71d4: d10083a1     	sub	x1, x29, #0x20
+    71d8: f94002a8     	ldr	x8, [x21]
+    71dc: 9100c3e2     	add	x2, sp, #0x30
+    71e0: aa1503e0     	mov	x0, x21
+    71e4: f9401909     	ldr	x9, [x8, #0x30]
+    71e8: 14000334     	b	0x7eb8 <.text+0xeb8>
+    71ec: 321f5be8     	mov	w8, #0xfffffe           // =16777214
+    71f0: 6b0802df     	cmp	w22, w8
+    71f4: 54004ca0     	b.eq	0x7b88 <.text+0xb88>
+    71f8: 12bfe008     	mov	w8, #0xffffff           // =16777215
+    71fc: 6b0802df     	cmp	w22, w8
+    7200: 54005221     	b.ne	0x7c44 <.text+0xc44>
+    7204: 94001c39     	bl	0xe2e8 <AStatus_newOk@plt>
+    7208: aa0003f5     	mov	x21, x0
+    720c: aa1403e0     	mov	x0, x20
+    7210: aa1503e1     	mov	x1, x21
+    7214: 94001c3b     	bl	0xe300 <AParcel_writeStatusHeader@plt>
+    7218: 2a0003f6     	mov	w22, w0
+    721c: 35006360     	cbnz	w0, 0x7e88 <.text+0xe88>
+    7220: aa1503e0     	mov	x0, x21
+    7224: 94001c3d     	bl	0xe318 <AStatus_isOk@plt>
+    7228: 360062e0     	tbz	w0, #0x0, 0x7e84 <.text+0xe84>
+    722c: aa1403e0     	mov	x0, x20
+    7230: 52800041     	mov	w1, #0x2                // =2
+    7234: 94001c3f     	bl	0xe330 <AParcel_writeInt32@plt>
+    7238: 2a0003f6     	mov	w22, w0
+    723c: 14000313     	b	0x7e88 <.text+0xe88>
+    7240: d503249f     	bti	j
+    7244: d100e3a1     	sub	x1, x29, #0x38
+    7248: aa1703e0     	mov	x0, x23
+    724c: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7250: f81f03bf     	stur	xzr, [x29, #-0x10]
+    7254: b90033ff     	str	wzr, [sp, #0x30]
+    7258: b81c83bf     	stur	wzr, [x29, #-0x38]
+    725c: 94001c17     	bl	0xe2b8 <AParcel_readInt32@plt>
+    7260: 2a0003f6     	mov	w22, w0
+    7264: 35006920     	cbnz	w0, 0x7f88 <.text+0xf88>
+    7268: b85c83a1     	ldur	w1, [x29, #-0x38]
+    726c: 37f82de1     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    7270: 52884808     	mov	w8, #0x4240             // =16960
+    7274: 72a001e8     	movk	w8, #0xf, lsl #16
+    7278: 6b08003f     	cmp	w1, w8
+    727c: 54002d28     	b.hi	0x7820 <.text+0x820>
+    7280: 34000061     	cbz	w1, 0x728c <.text+0x28c>
+    7284: d10083a0     	sub	x0, x29, #0x20
+    7288: 94001c12     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    728c: f81c83bf     	stur	xzr, [x29, #-0x38]
+    7290: d10083a1     	sub	x1, x29, #0x20
+    7294: f94002a8     	ldr	x8, [x21]
+    7298: 9100c3e2     	add	x2, sp, #0x30
+    729c: aa1503e0     	mov	x0, x21
+    72a0: f9408509     	ldr	x9, [x8, #0x108]
+    72a4: 14000305     	b	0x7eb8 <.text+0xeb8>
+    72a8: d503249f     	bti	j
+    72ac: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    72b0: d10083a1     	sub	x1, x29, #0x20
+    72b4: 91365042     	add	x2, x2, #0xd94
+    72b8: aa1703e0     	mov	x0, x23
+    72bc: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    72c0: f81f03bf     	stur	xzr, [x29, #-0x10]
+    72c4: b90033ff     	str	wzr, [sp, #0x30]
+    72c8: 94001c20     	bl	0xe348 <AParcel_readByteArray@plt>
+    72cc: 2a0003f6     	mov	w22, w0
+    72d0: 35006540     	cbnz	w0, 0x7f78 <.text+0xf78>
+    72d4: f81c83bf     	stur	xzr, [x29, #-0x38]
+    72d8: d10083a1     	sub	x1, x29, #0x20
+    72dc: f94002a8     	ldr	x8, [x21]
+    72e0: 9100c3e2     	add	x2, sp, #0x30
+    72e4: aa1503e0     	mov	x0, x21
+    72e8: f9405109     	ldr	x9, [x8, #0xa0]
+    72ec: 14000269     	b	0x7c90 <.text+0xc90>
+    72f0: d503249f     	bti	j
+    72f4: b81c83bf     	stur	wzr, [x29, #-0x38]
+    72f8: d100e3a1     	sub	x1, x29, #0x38
+    72fc: f81e03bf     	stur	xzr, [x29, #-0x20]
+    7300: aa1503e0     	mov	x0, x21
+    7304: f94002a8     	ldr	x8, [x21]
+    7308: f9405909     	ldr	x9, [x8, #0xb0]
+    730c: 140001cb     	b	0x7a38 <.text+0xa38>
+    7310: d503249f     	bti	j
+    7314: d100e3a1     	sub	x1, x29, #0x38
+    7318: aa1703e0     	mov	x0, x23
+    731c: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7320: f81f03bf     	stur	xzr, [x29, #-0x10]
+    7324: b90033ff     	str	wzr, [sp, #0x30]
+    7328: b81c83bf     	stur	wzr, [x29, #-0x38]
+    732c: 94001be3     	bl	0xe2b8 <AParcel_readInt32@plt>
+    7330: 2a0003f6     	mov	w22, w0
+    7334: 350062a0     	cbnz	w0, 0x7f88 <.text+0xf88>
+    7338: b85c83a1     	ldur	w1, [x29, #-0x38]
+    733c: 37f82761     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    7340: 52884808     	mov	w8, #0x4240             // =16960
+    7344: 72a001e8     	movk	w8, #0xf, lsl #16
+    7348: 6b08003f     	cmp	w1, w8
+    734c: 540026a8     	b.hi	0x7820 <.text+0x820>
+    7350: 34000061     	cbz	w1, 0x735c <.text+0x35c>
+    7354: d10083a0     	sub	x0, x29, #0x20
+    7358: 94001bde     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    735c: f81c83bf     	stur	xzr, [x29, #-0x38]
+    7360: d10083a1     	sub	x1, x29, #0x20
+    7364: f94002a8     	ldr	x8, [x21]
+    7368: 9100c3e2     	add	x2, sp, #0x30
+    736c: aa1503e0     	mov	x0, x21
+    7370: f9402909     	ldr	x9, [x8, #0x50]
+    7374: 140002d1     	b	0x7eb8 <.text+0xeb8>
+    7378: d503249f     	bti	j
+    737c: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7380: d10083a1     	sub	x1, x29, #0x20
+    7384: 91365042     	add	x2, x2, #0xd94
+    7388: aa1703e0     	mov	x0, x23
+    738c: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7390: f81f03bf     	stur	xzr, [x29, #-0x10]
+    7394: a93cffbf     	stp	xzr, xzr, [x29, #-0x38]
+    7398: f81d83bf     	stur	xzr, [x29, #-0x28]
+    739c: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+    73a0: f90023ff     	str	xzr, [sp, #0x40]
+    73a4: b9000bff     	str	wzr, [sp, #0x8]
+    73a8: 94001be8     	bl	0xe348 <AParcel_readByteArray@plt>
+    73ac: 2a0003f6     	mov	w22, w0
+    73b0: 35005d40     	cbnz	w0, 0x7f58 <.text+0xf58>
+    73b4: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    73b8: d100e3a1     	sub	x1, x29, #0x38
+    73bc: 91365042     	add	x2, x2, #0xd94
+    73c0: aa1703e0     	mov	x0, x23
+    73c4: 94001be1     	bl	0xe348 <AParcel_readByteArray@plt>
+    73c8: 2a0003f6     	mov	w22, w0
+    73cc: 35005c60     	cbnz	w0, 0x7f58 <.text+0xf58>
+    73d0: 9100c3e1     	add	x1, sp, #0x30
+    73d4: aa1703e0     	mov	x0, x23
+    73d8: 9400199a     	bl	0xda40 <_ZNSt3__120__shared_ptr_pointerIPN3ndk13SharedRefBaseENS_14default_deleteIS2_EENS_9allocatorIS2_EEE21__on_zero_shared_weakEv+0x8>
+    73dc: 2a0003f6     	mov	w22, w0
+    73e0: 35005bc0     	cbnz	w0, 0x7f58 <.text+0xf58>
+    73e4: f9000fff     	str	xzr, [sp, #0x18]
+    73e8: d10083a1     	sub	x1, x29, #0x20
+    73ec: f94002a8     	ldr	x8, [x21]
+    73f0: d100e3a2     	sub	x2, x29, #0x38
+    73f4: 9100c3e3     	add	x3, sp, #0x30
+    73f8: 910023e4     	add	x4, sp, #0x8
+    73fc: aa1503e0     	mov	x0, x21
+    7400: f9403d09     	ldr	x9, [x8, #0x78]
+    7404: 14000255     	b	0x7d58 <.text+0xd58>
+    7408: d503249f     	bti	j
+    740c: b81c83bf     	stur	wzr, [x29, #-0x38]
+    7410: d100e3a1     	sub	x1, x29, #0x38
+    7414: f81e03bf     	stur	xzr, [x29, #-0x20]
+    7418: aa1503e0     	mov	x0, x21
+    741c: f94002a8     	ldr	x8, [x21]
+    7420: f9404509     	ldr	x9, [x8, #0x88]
+    7424: 14000185     	b	0x7a38 <.text+0xa38>
+    7428: d503249f     	bti	j
+    742c: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7430: d10083a1     	sub	x1, x29, #0x20
+    7434: 91365042     	add	x2, x2, #0xd94
+    7438: aa1703e0     	mov	x0, x23
+    743c: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7440: f81f03bf     	stur	xzr, [x29, #-0x10]
+    7444: a93cffbf     	stp	xzr, xzr, [x29, #-0x38]
+    7448: f81d83bf     	stur	xzr, [x29, #-0x28]
+    744c: b9001bff     	str	wzr, [sp, #0x18]
+    7450: 94001bbe     	bl	0xe348 <AParcel_readByteArray@plt>
+    7454: 2a0003f6     	mov	w22, w0
+    7458: 35005880     	cbnz	w0, 0x7f68 <.text+0xf68>
+    745c: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7460: d100e3a1     	sub	x1, x29, #0x38
+    7464: 91365042     	add	x2, x2, #0xd94
+    7468: aa1703e0     	mov	x0, x23
+    746c: 94001bb7     	bl	0xe348 <AParcel_readByteArray@plt>
+    7470: 2a0003f6     	mov	w22, w0
+    7474: 350057a0     	cbnz	w0, 0x7f68 <.text+0xf68>
+    7478: f9001bff     	str	xzr, [sp, #0x30]
+    747c: d10083a1     	sub	x1, x29, #0x20
+    7480: f94002a8     	ldr	x8, [x21]
+    7484: d100e3a2     	sub	x2, x29, #0x38
+    7488: 910063e3     	add	x3, sp, #0x18
+    748c: aa1503e0     	mov	x0, x21
+    7490: f9404909     	ldr	x9, [x8, #0x90]
+    7494: 14000262     	b	0x7e1c <.text+0xe1c>
+    7498: d503249f     	bti	j
+    749c: d100e3a1     	sub	x1, x29, #0x38
+    74a0: aa1703e0     	mov	x0, x23
+    74a4: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    74a8: f81f03bf     	stur	xzr, [x29, #-0x10]
+    74ac: b90033ff     	str	wzr, [sp, #0x30]
+    74b0: b81c83bf     	stur	wzr, [x29, #-0x38]
+    74b4: 94001b81     	bl	0xe2b8 <AParcel_readInt32@plt>
+    74b8: 2a0003f6     	mov	w22, w0
+    74bc: 35005660     	cbnz	w0, 0x7f88 <.text+0xf88>
+    74c0: b85c83a1     	ldur	w1, [x29, #-0x38]
+    74c4: 37f81b21     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    74c8: 52884808     	mov	w8, #0x4240             // =16960
+    74cc: 72a001e8     	movk	w8, #0xf, lsl #16
+    74d0: 6b08003f     	cmp	w1, w8
+    74d4: 54001a68     	b.hi	0x7820 <.text+0x820>
+    74d8: 34000061     	cbz	w1, 0x74e4 <.text+0x4e4>
+    74dc: d10083a0     	sub	x0, x29, #0x20
+    74e0: 94001b7c     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    74e4: f81c83bf     	stur	xzr, [x29, #-0x38]
+    74e8: d10083a1     	sub	x1, x29, #0x20
+    74ec: f94002a8     	ldr	x8, [x21]
+    74f0: 9100c3e2     	add	x2, sp, #0x30
+    74f4: aa1503e0     	mov	x0, x21
+    74f8: f9407909     	ldr	x9, [x8, #0xf0]
+    74fc: 1400026f     	b	0x7eb8 <.text+0xeb8>
+    7500: d503249f     	bti	j
+    7504: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7508: d10083a1     	sub	x1, x29, #0x20
+    750c: 91365042     	add	x2, x2, #0xd94
+    7510: aa1703e0     	mov	x0, x23
+    7514: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7518: f81f03bf     	stur	xzr, [x29, #-0x10]
+    751c: a93cffbf     	stp	xzr, xzr, [x29, #-0x38]
+    7520: f81d83bf     	stur	xzr, [x29, #-0x28]
+    7524: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+    7528: f90023ff     	str	xzr, [sp, #0x40]
+    752c: b9000bff     	str	wzr, [sp, #0x8]
+    7530: 94001b86     	bl	0xe348 <AParcel_readByteArray@plt>
+    7534: 2a0003f6     	mov	w22, w0
+    7538: 35005100     	cbnz	w0, 0x7f58 <.text+0xf58>
+    753c: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7540: d100e3a1     	sub	x1, x29, #0x38
+    7544: 91365042     	add	x2, x2, #0xd94
+    7548: aa1703e0     	mov	x0, x23
+    754c: 94001b7f     	bl	0xe348 <AParcel_readByteArray@plt>
+    7550: 2a0003f6     	mov	w22, w0
+    7554: 35005020     	cbnz	w0, 0x7f58 <.text+0xf58>
+    7558: 9100c3e1     	add	x1, sp, #0x30
+    755c: aa1703e0     	mov	x0, x23
+    7560: 94001938     	bl	0xda40 <_ZNSt3__120__shared_ptr_pointerIPN3ndk13SharedRefBaseENS_14default_deleteIS2_EENS_9allocatorIS2_EEE21__on_zero_shared_weakEv+0x8>
+    7564: 2a0003f6     	mov	w22, w0
+    7568: 35004f80     	cbnz	w0, 0x7f58 <.text+0xf58>
+    756c: f9000fff     	str	xzr, [sp, #0x18]
+    7570: d10083a1     	sub	x1, x29, #0x20
+    7574: f94002a8     	ldr	x8, [x21]
+    7578: d100e3a2     	sub	x2, x29, #0x38
+    757c: 9100c3e3     	add	x3, sp, #0x30
+    7580: 910023e4     	add	x4, sp, #0x8
+    7584: aa1503e0     	mov	x0, x21
+    7588: f9407d09     	ldr	x9, [x8, #0xf8]
+    758c: 140001f3     	b	0x7d58 <.text+0xd58>
+    7590: d503249f     	bti	j
+    7594: d100e3a1     	sub	x1, x29, #0x38
+    7598: aa1703e0     	mov	x0, x23
+    759c: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    75a0: f81f03bf     	stur	xzr, [x29, #-0x10]
+    75a4: b90033ff     	str	wzr, [sp, #0x30]
+    75a8: b81c83bf     	stur	wzr, [x29, #-0x38]
+    75ac: 94001b43     	bl	0xe2b8 <AParcel_readInt32@plt>
+    75b0: 2a0003f6     	mov	w22, w0
+    75b4: 35004ea0     	cbnz	w0, 0x7f88 <.text+0xf88>
+    75b8: b85c83a1     	ldur	w1, [x29, #-0x38]
+    75bc: 37f81361     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    75c0: 52884808     	mov	w8, #0x4240             // =16960
+    75c4: 72a001e8     	movk	w8, #0xf, lsl #16
+    75c8: 6b08003f     	cmp	w1, w8
+    75cc: 540012a8     	b.hi	0x7820 <.text+0x820>
+    75d0: 34000061     	cbz	w1, 0x75dc <.text+0x5dc>
+    75d4: d10083a0     	sub	x0, x29, #0x20
+    75d8: 94001b3e     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    75dc: f81c83bf     	stur	xzr, [x29, #-0x38]
+    75e0: d10083a1     	sub	x1, x29, #0x20
+    75e4: f94002a8     	ldr	x8, [x21]
+    75e8: 9100c3e2     	add	x2, sp, #0x30
+    75ec: aa1503e0     	mov	x0, x21
+    75f0: f9401d09     	ldr	x9, [x8, #0x38]
+    75f4: 14000231     	b	0x7eb8 <.text+0xeb8>
+    75f8: d503249f     	bti	j
+    75fc: d100e3a1     	sub	x1, x29, #0x38
+    7600: aa1703e0     	mov	x0, x23
+    7604: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7608: f81f03bf     	stur	xzr, [x29, #-0x10]
+    760c: b90033ff     	str	wzr, [sp, #0x30]
+    7610: b81c83bf     	stur	wzr, [x29, #-0x38]
+    7614: 94001b29     	bl	0xe2b8 <AParcel_readInt32@plt>
+    7618: 2a0003f6     	mov	w22, w0
+    761c: 35004b60     	cbnz	w0, 0x7f88 <.text+0xf88>
+    7620: b85c83a1     	ldur	w1, [x29, #-0x38]
+    7624: 37f81021     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    7628: 52884808     	mov	w8, #0x4240             // =16960
+    762c: 72a001e8     	movk	w8, #0xf, lsl #16
+    7630: 6b08003f     	cmp	w1, w8
+    7634: 54000f68     	b.hi	0x7820 <.text+0x820>
+    7638: 34000061     	cbz	w1, 0x7644 <.text+0x644>
+    763c: d10083a0     	sub	x0, x29, #0x20
+    7640: 94001b24     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    7644: f81c83bf     	stur	xzr, [x29, #-0x38]
+    7648: d10083a1     	sub	x1, x29, #0x20
+    764c: f94002a8     	ldr	x8, [x21]
+    7650: 9100c3e2     	add	x2, sp, #0x30
+    7654: aa1503e0     	mov	x0, x21
+    7658: f9402109     	ldr	x9, [x8, #0x40]
+    765c: 14000217     	b	0x7eb8 <.text+0xeb8>
+    7660: d503249f     	bti	j
+    7664: d100e3a1     	sub	x1, x29, #0x38
+    7668: aa1703e0     	mov	x0, x23
+    766c: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7670: f81f03bf     	stur	xzr, [x29, #-0x10]
+    7674: b90033ff     	str	wzr, [sp, #0x30]
+    7678: b81c83bf     	stur	wzr, [x29, #-0x38]
+    767c: 94001b0f     	bl	0xe2b8 <AParcel_readInt32@plt>
+    7680: 2a0003f6     	mov	w22, w0
+    7684: 35004820     	cbnz	w0, 0x7f88 <.text+0xf88>
+    7688: b85c83a1     	ldur	w1, [x29, #-0x38]
+    768c: 37f80ce1     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    7690: 52884808     	mov	w8, #0x4240             // =16960
+    7694: 72a001e8     	movk	w8, #0xf, lsl #16
+    7698: 6b08003f     	cmp	w1, w8
+    769c: 54000c28     	b.hi	0x7820 <.text+0x820>
+    76a0: 34000061     	cbz	w1, 0x76ac <.text+0x6ac>
+    76a4: d10083a0     	sub	x0, x29, #0x20
+    76a8: 94001b0a     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    76ac: f81c83bf     	stur	xzr, [x29, #-0x38]
+    76b0: d10083a1     	sub	x1, x29, #0x20
+    76b4: f94002a8     	ldr	x8, [x21]
+    76b8: 9100c3e2     	add	x2, sp, #0x30
+    76bc: aa1503e0     	mov	x0, x21
+    76c0: f9402509     	ldr	x9, [x8, #0x48]
+    76c4: 140001fd     	b	0x7eb8 <.text+0xeb8>
+    76c8: d503249f     	bti	j
+    76cc: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    76d0: d10083a1     	sub	x1, x29, #0x20
+    76d4: 91365042     	add	x2, x2, #0xd94
+    76d8: aa1703e0     	mov	x0, x23
+    76dc: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    76e0: f81f03bf     	stur	xzr, [x29, #-0x10]
+    76e4: a93cffbf     	stp	xzr, xzr, [x29, #-0x38]
+    76e8: f81d83bf     	stur	xzr, [x29, #-0x28]
+    76ec: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+    76f0: f90023ff     	str	xzr, [sp, #0x40]
+    76f4: b9000bff     	str	wzr, [sp, #0x8]
+    76f8: 94001b14     	bl	0xe348 <AParcel_readByteArray@plt>
+    76fc: 2a0003f6     	mov	w22, w0
+    7700: 350042c0     	cbnz	w0, 0x7f58 <.text+0xf58>
+    7704: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7708: d100e3a1     	sub	x1, x29, #0x38
+    770c: 91365042     	add	x2, x2, #0xd94
+    7710: aa1703e0     	mov	x0, x23
+    7714: 94001b0d     	bl	0xe348 <AParcel_readByteArray@plt>
+    7718: 2a0003f6     	mov	w22, w0
+    771c: 350041e0     	cbnz	w0, 0x7f58 <.text+0xf58>
+    7720: 9100c3e1     	add	x1, sp, #0x30
+    7724: aa1703e0     	mov	x0, x23
+    7728: 940018c6     	bl	0xda40 <_ZNSt3__120__shared_ptr_pointerIPN3ndk13SharedRefBaseENS_14default_deleteIS2_EENS_9allocatorIS2_EEE21__on_zero_shared_weakEv+0x8>
+    772c: 2a0003f6     	mov	w22, w0
+    7730: 35004140     	cbnz	w0, 0x7f58 <.text+0xf58>
+    7734: f9000fff     	str	xzr, [sp, #0x18]
+    7738: d10083a1     	sub	x1, x29, #0x20
+    773c: f94002a8     	ldr	x8, [x21]
+    7740: d100e3a2     	sub	x2, x29, #0x38
+    7744: 9100c3e3     	add	x3, sp, #0x30
+    7748: 910023e4     	add	x4, sp, #0x8
+    774c: aa1503e0     	mov	x0, x21
+    7750: f9402d09     	ldr	x9, [x8, #0x58]
+    7754: 14000181     	b	0x7d58 <.text+0xd58>
+    7758: d503249f     	bti	j
+    775c: b81c83bf     	stur	wzr, [x29, #-0x38]
+    7760: d100e3a1     	sub	x1, x29, #0x38
+    7764: f81e03bf     	stur	xzr, [x29, #-0x20]
+    7768: aa1503e0     	mov	x0, x21
+    776c: f94002a8     	ldr	x8, [x21]
+    7770: f9403109     	ldr	x9, [x8, #0x60]
+    7774: 140000b1     	b	0x7a38 <.text+0xa38>
+    7778: d503249f     	bti	j
+    777c: d100e3a1     	sub	x1, x29, #0x38
+    7780: aa1703e0     	mov	x0, x23
+    7784: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7788: f81f03bf     	stur	xzr, [x29, #-0x10]
+    778c: b90033ff     	str	wzr, [sp, #0x30]
+    7790: b81c83bf     	stur	wzr, [x29, #-0x38]
+    7794: 94001ac9     	bl	0xe2b8 <AParcel_readInt32@plt>
+    7798: 2a0003f6     	mov	w22, w0
+    779c: 35003f60     	cbnz	w0, 0x7f88 <.text+0xf88>
+    77a0: b85c83a1     	ldur	w1, [x29, #-0x38]
+    77a4: 37f80421     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    77a8: 52884808     	mov	w8, #0x4240             // =16960
+    77ac: 72a001e8     	movk	w8, #0xf, lsl #16
+    77b0: 6b08003f     	cmp	w1, w8
+    77b4: 54000368     	b.hi	0x7820 <.text+0x820>
+    77b8: 34000061     	cbz	w1, 0x77c4 <.text+0x7c4>
+    77bc: d10083a0     	sub	x0, x29, #0x20
+    77c0: 94001ac4     	bl	0xe2d0 <_ZNSt3__16vectorIhNS_9allocatorIhEEE8__appendEm@plt>
+    77c4: f81c83bf     	stur	xzr, [x29, #-0x38]
+    77c8: d10083a1     	sub	x1, x29, #0x20
+    77cc: f94002a8     	ldr	x8, [x21]
+    77d0: 9100c3e2     	add	x2, sp, #0x30
+    77d4: aa1503e0     	mov	x0, x21
+    77d8: f9403509     	ldr	x9, [x8, #0x68]
+    77dc: 140001b7     	b	0x7eb8 <.text+0xeb8>
+    77e0: d503249f     	bti	j
+    77e4: d100e3a1     	sub	x1, x29, #0x38
+    77e8: aa1703e0     	mov	x0, x23
+    77ec: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    77f0: f81f03bf     	stur	xzr, [x29, #-0x10]
+    77f4: b90033ff     	str	wzr, [sp, #0x30]
+    77f8: b81c83bf     	stur	wzr, [x29, #-0x38]
+    77fc: 94001aaf     	bl	0xe2b8 <AParcel_readInt32@plt>
+    7800: 2a0003f6     	mov	w22, w0
+    7804: 35003c20     	cbnz	w0, 0x7f88 <.text+0xf88>
+    7808: b85c83a1     	ldur	w1, [x29, #-0x38]
+    780c: 37f800e1     	tbnz	w1, #0x1f, 0x7828 <.text+0x828>
+    7810: 52884808     	mov	w8, #0x4240             // =16960
+    7814: 72a001e8     	movk	w8, #0xf, lsl #16
+    7818: 6b08003f     	cmp	w1, w8
+    781c: 540033c9     	b.ls	0x7e94 <.text+0xe94>
+    7820: 12800176     	mov	w22, #-0xc              // =-12
+    7824: 140001d9     	b	0x7f88 <.text+0xf88>
+    7828: 52800116     	mov	w22, #0x8               // =8
+    782c: 72b00016     	movk	w22, #0x8000, lsl #16
+    7830: 140001d6     	b	0x7f88 <.text+0xf88>
+    7834: d503249f     	bti	j
+    7838: 9100c3e1     	add	x1, sp, #0x30
+    783c: aa1703e0     	mov	x0, x23
+    7840: b90033ff     	str	wzr, [sp, #0x30]
+    7844: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    7848: f81f03bf     	stur	xzr, [x29, #-0x10]
+    784c: b9001bff     	str	wzr, [sp, #0x18]
+    7850: 94001a9a     	bl	0xe2b8 <AParcel_readInt32@plt>
+    7854: 2a0003f6     	mov	w22, w0
+    7858: 35003900     	cbnz	w0, 0x7f78 <.text+0xf78>
+    785c: d10083a1     	sub	x1, x29, #0x20
+    7860: aa1703e0     	mov	x0, x23
+    7864: 94001877     	bl	0xda40 <_ZNSt3__120__shared_ptr_pointerIPN3ndk13SharedRefBaseENS_14default_deleteIS2_EENS_9allocatorIS2_EEE21__on_zero_shared_weakEv+0x8>
+    7868: 2a0003f6     	mov	w22, w0
+    786c: 35003860     	cbnz	w0, 0x7f78 <.text+0xf78>
+    7870: f81c83bf     	stur	xzr, [x29, #-0x38]
+    7874: b94033e1     	ldr	w1, [sp, #0x30]
+    7878: f94002a8     	ldr	x8, [x21]
+    787c: d10083a2     	sub	x2, x29, #0x20
+    7880: 910063e3     	add	x3, sp, #0x18
+    7884: aa1503e0     	mov	x0, x21
+    7888: f9404109     	ldr	x9, [x8, #0x80]
+    788c: d100e3a8     	sub	x8, x29, #0x38
+    7890: d63f0120     	blr	x9
+    7894: f85c83a1     	ldur	x1, [x29, #-0x38]
+    7898: aa1403e0     	mov	x0, x20
+    789c: 94001a99     	bl	0xe300 <AParcel_writeStatusHeader@plt>
+    78a0: 2a0003f6     	mov	w22, w0
+    78a4: 35003360     	cbnz	w0, 0x7f10 <.text+0xf10>
+    78a8: f85c83a0     	ldur	x0, [x29, #-0x38]
+    78ac: 94001a9b     	bl	0xe318 <AStatus_isOk@plt>
+    78b0: 360032e0     	tbz	w0, #0x0, 0x7f0c <.text+0xf0c>
+    78b4: b9401be1     	ldr	w1, [sp, #0x18]
+    78b8: 1400018b     	b	0x7ee4 <.text+0xee4>
+    78bc: d503249f     	bti	j
+    78c0: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    78c4: d10083a1     	sub	x1, x29, #0x20
+    78c8: 91365042     	add	x2, x2, #0xd94
+    78cc: aa1703e0     	mov	x0, x23
+    78d0: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    78d4: f81f03bf     	stur	xzr, [x29, #-0x10]
+    78d8: a93cffbf     	stp	xzr, xzr, [x29, #-0x38]
+    78dc: f81d83bf     	stur	xzr, [x29, #-0x28]
+    78e0: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+    78e4: f90023ff     	str	xzr, [sp, #0x40]
+    78e8: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+    78ec: f90017ff     	str	xzr, [sp, #0x28]
+    78f0: b90017ff     	str	wzr, [sp, #0x14]
+    78f4: 94001a95     	bl	0xe348 <AParcel_readByteArray@plt>
+    78f8: 2a0003f6     	mov	w22, w0
+    78fc: 35003260     	cbnz	w0, 0x7f48 <.text+0xf48>
+    7900: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7904: d100e3a1     	sub	x1, x29, #0x38
+    7908: 91365042     	add	x2, x2, #0xd94
+    790c: aa1703e0     	mov	x0, x23
+    7910: 94001a8e     	bl	0xe348 <AParcel_readByteArray@plt>
+    7914: 2a0003f6     	mov	w22, w0
+    7918: 35003180     	cbnz	w0, 0x7f48 <.text+0xf48>
+    791c: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    7920: 9100c3e1     	add	x1, sp, #0x30
+    7924: 91365042     	add	x2, x2, #0xd94
+    7928: aa1703e0     	mov	x0, x23
+    792c: 94001a87     	bl	0xe348 <AParcel_readByteArray@plt>
+    7930: 2a0003f6     	mov	w22, w0
+    7934: 350030a0     	cbnz	w0, 0x7f48 <.text+0xf48>
+    7938: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    793c: 910063e1     	add	x1, sp, #0x18
+    7940: 91365042     	add	x2, x2, #0xd94
+    7944: aa1703e0     	mov	x0, x23
+    7948: 94001a80     	bl	0xe348 <AParcel_readByteArray@plt>
+    794c: 2a0003f6     	mov	w22, w0
+    7950: 35002fc0     	cbnz	w0, 0x7f48 <.text+0xf48>
+    7954: f90007ff     	str	xzr, [sp, #0x8]
+    7958: d10083a1     	sub	x1, x29, #0x20
+    795c: f94002a8     	ldr	x8, [x21]
+    7960: d100e3a2     	sub	x2, x29, #0x38
+    7964: 9100c3e3     	add	x3, sp, #0x30
+    7968: 910063e4     	add	x4, sp, #0x18
+    796c: 910053e5     	add	x5, sp, #0x14
+    7970: aa1503e0     	mov	x0, x21
+    7974: f9404d09     	ldr	x9, [x8, #0x98]
+    7978: 910023e8     	add	x8, sp, #0x8
+    797c: d63f0120     	blr	x9
+    7980: f94007e1     	ldr	x1, [sp, #0x8]
+    7984: aa1403e0     	mov	x0, x20
+    7988: 94001a5e     	bl	0xe300 <AParcel_writeStatusHeader@plt>
+    798c: 2a0003f6     	mov	w22, w0
+    7990: 35002d80     	cbnz	w0, 0x7f40 <.text+0xf40>
+    7994: f94007e0     	ldr	x0, [sp, #0x8]
+    7998: 94001a60     	bl	0xe318 <AStatus_isOk@plt>
+    799c: 36002d00     	tbz	w0, #0x0, 0x7f3c <.text+0xf3c>
+    79a0: b94017e1     	ldr	w1, [sp, #0x14]
+    79a4: aa1403e0     	mov	x0, x20
+    79a8: 94001a62     	bl	0xe330 <AParcel_writeInt32@plt>
+    79ac: 2a0003f6     	mov	w22, w0
+    79b0: 14000164     	b	0x7f40 <.text+0xf40>
+    79b4: d503249f     	bti	j
+    79b8: d0000022     	adrp	x2, 0xd000 <_ZN4aidl6vendor7samsung8hardware3tlc2kg13ISehKgDefault9terminateEPi+0x28>
+    79bc: d10083a1     	sub	x1, x29, #0x20
+    79c0: 91365042     	add	x2, x2, #0xd94
+    79c4: aa1703e0     	mov	x0, x23
+    79c8: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+    79cc: f81f03bf     	stur	xzr, [x29, #-0x10]
+    79d0: b90033ff     	str	wzr, [sp, #0x30]
+    79d4: 94001a5d     	bl	0xe348 <AParcel_readByteArray@plt>
+    79d8: 2a0003f6     	mov	w22, w0
+    79dc: 35002ce0     	cbnz	w0, 0x7f78 <.text+0xf78>
+    79e0: f81c83bf     	stur	xzr, [x29, #-0x38]
+    79e4: d10083a1     	sub	x1, x29, #0x20
+    79e8: f94002a8     	ldr	x8, [x21]
+    79ec: 9100c3e2     	add	x2, sp, #0x30
+    79f0: aa1503e0     	mov	x0, x21
+    79f4: f9405509     	ldr	x9, [x8, #0xa8]
+    79f8: 140000a6     	b	0x7c90 <.text+0xc90>
+    79fc: d503249f     	bti	j

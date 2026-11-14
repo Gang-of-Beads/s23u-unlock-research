@@ -1,0 +1,6 @@
+oem_lock 1: Result: Parcel(	00000000 00000000 00000000  '............') 
+oem_lock 2: Result: Parcel(	00000000    '....') 
+oem_lock 3: Result: Parcel(	00000000 00000000   '........') 
+oem_lock 4: Result: Parcel(	 0x00000000: ffffffff 00000021 00610043 00720072 '....!...C.a.r.r.' 
+oem_lock 7: Result: Parcel(	00000000 00000000   '........') 
+rc=0

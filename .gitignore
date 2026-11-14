@@ -1,0 +1,7 @@
+*.zip
+*.enc4
+*.tar.md5
+*.tar
+DM3Q_EUR_OPENX.pit
+*.img
+__pycache__/

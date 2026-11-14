@@ -1,0 +1,5 @@
+samsung/dm3qxxx/dm3q:16/BP4A.251205.006/S918BXXSAFZH3:user/release-keys
+R5CWAXXXXX
+XSG
+qcom
+rc=0

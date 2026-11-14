@@ -1,0 +1,18 @@
+{
+  "captured_at": "2026-11-13T14:58:05+04:00",
+  "device": "SM-S918B / R5CWAXXXXX / XSG",
+  "build": "BP4A.251205.006.S918BXXSAFZH3",
+  "kg_state": "Active",
+  "ro.boot.kg": "0x2",
+  "ro.boot.kg.bit": "01",
+  "ro.boot.other.locked": "1",
+  "ro.boot.verifiedbootstate": "green",
+  "ro.boot.flash.locked": "1",
+  "warranty_bit": "1",
+  "ulcnt": "3",
+  "oem_lock_3_allowed_by_user": 0,
+  "oem_lock_2_allowed_by_carrier": 0,
+  "no_oem_unlock_restriction": true,
+  "persistent_pdp_magic_present": true,
+  "note": "read-only snapshot; hashes in partitions.sha256"
+}
