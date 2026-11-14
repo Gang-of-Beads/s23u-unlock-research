@@ -796,3 +796,52 @@ su -c 'CLASSPATH=/data/local/tmp/kgcall.jar app_process /system/bin dev.pi.kgcal
 （登记/放行）或 EM token。但这次至少把「客户端触发」这条路彻底打通到 TZ 边界了，以前只能看到 -1000。
 
 工具源码与 jar 已收进仓库：`scripts/helpers/kgcall/`（`src/dev/pi/kgcall/Main.java` + `kgcall.jar`）。
+
+## 33. KG HAL 全体方法表（`kgndk.so` 有符号，含 `initiate`/`terminate`）
+
+`/vendor/lib64/vendor.samsung.hardware.tlc.kg-V2-ndk.so` 的 dynsym **没被 strip**，
+`llvm-nm -D` 能直接列出全部 AIDL 方法（这比之前靠 vtable 槽位猜准确得多）。
+逐个 code 用 `int:0 + 3×byte[32]` 满参调用并抓 HAL 日志里的方法名，得到 code→方法：
+
+| code | 方法 | TZ 错误码 |
+| --- | --- | --- |
+| 1 | generateHotpDhRequest | 520 |
+| 2 | getClientData | 0 |
+| 3 | getHdmStatus | 261 |
+| 4 | getHotpChallengeCode | 0 |
+| 5 | getKgId | 0 |
+| 6 | getKgPolicy | 520 |
+| **7** | **getKgState** | **0**（恒 `2`） |
+| 8 | getLockActionData | 520 |
+| 9 | getLockActionId | 0 |
+| 10 | getNonce | 2305 |
+| 11 | getTAInfo | 4101 |
+| 13 | lockScreen | 0 |
+| 14 | provisionCert | 264 |
+| **15** | **resetKgInfo** | **0（但状态不变，仍 2）** |
+| 16 | setClientData | 0 |
+| **17** | **setUserCheckingState** | **262** |
+| 19 | unlockScreen | 0（状态不变） |
+| 20 | verifyCompleteToken | 264 |
+| 21 | verifyHotpDhChallengeCode | 264 |
+| 22 | verifyHotpPin | 0 |
+| 23 | verifyHotpSecret | 0 |
+| 24 | verifyKgPolicy | 264 |
+| 25 | verifyKgRot | 0 |
+| 26 | verifyRegistrationInfo | 264 |
+| 27 | verifySfPolicy | 261 |
+| 28 | readSfPolicy | 261 |
+
+参数形状（从 onTransact 的反汇编读出来，不是猜）：1/2/3/5/6/7/8/9 收 `int`，4/10/12/13/15/16/17/18/19/20/21/22/23/24/25/26/27/28 收 `byte[]`（部分收 2–4 个），
+`initiate`/`terminate` 不收参（对应 code 12/18，实测 code 12 才会建 ctx，与 `initiate` 语义一致）。
+
+**关键结论**：`resetKgInfo`、`unlockScreen`、`lockScreen`、`verifyHotpPin`、`verifyHotpSecret` 都能返回 0，
+但 **KG 状态一律不动**；`setUserCheckingState` 恒 262；要动状态必须喂**真数据**给
+`verifyRegistrationInfo`(26) / `verifyKgPolicy`(24) / `provisionCert`(14)，这三个现在都回 264（数据无效）。
+
+## 34. ESI 块首 0x20 字节确实被校验
+
+把 S24 样张块首 0x20 字节清零、其余（合法 item 表）保持不动后写入 steady：
+`emInit` 从 `0xf00b0010` 退回 **`0xf02d0010`** —— 说明这 0x20 字节是 ESI 的**头/签名**，
+不通过的话 TA 连 item 表都不看。下一步要么解出它的算法（疑似 AES/hash，需 TA 内密钥），
+要么从真实设备上抓一份同型号的 steady 块来对照。
