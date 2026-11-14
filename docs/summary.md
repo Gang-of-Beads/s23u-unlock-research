@@ -88,8 +88,9 @@ EM token 更难，因为叠了三层不确定：
    成功后 `provisionCert` 会有真证书，闸门直接放行。
 2. **拿签名 EM token**（格式已公开，缺的是三星工程**叶子证书+私钥**。`findings.md` §40/§42） —— 有 token 后按 `docs/tooling.md` 的 runbook 灌入（工具必须改名 `emservice`）。
    需要 ESS 通道：自带服务的 SIM 或 ESS 凭据。ESS 走 CP，`emGetTimeRequest`/`emEssCommand` 现在会阻塞。
-3. **EDL（9008）** —— 绕开 `-5` 直接读写分区、可救砖。EDL 线（300kΩ 拉 D+ 到 GND）是免拆版短接，
-   **能不能触发本机未知**；SM-S918B 的 signing loader 公开可得。限制：**不平 AVB**，custom 镜像仍要过签名。
+3. **EDL（9008）** —— 免拆短接线在 S23/S24/S25 上有成功案例；但检索显示
+   **locked BL 下 EDL 刷 custom 基本无人成功**（刷完 "SYSTEM HAS BEEN DESTROYED"）。
+   价值是救砖 + 读写 + 做实验，不是解锁。见 `findings.md` §45。
 
 ## 环境现状的坑（做 EM/ESS 前先处理）
 

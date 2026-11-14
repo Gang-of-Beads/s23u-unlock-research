@@ -1056,3 +1056,30 @@ AVB（原签）挡在后面。两者都不在我们能改的层（除非有 TZ �
 
 结论：**买根 EDL 线试是划算的**（几十块钱、不动手机、失败无损失），但要预期它换来的是
 "读写能力 + 救砖"，不是"直接解锁"。真正决定成败的仍是 TZ 状态。
+
+## 45. 检索「成功案例」的结果：进 EDL 有线可行，但"EDL 刷 custom 能开机"基本没人成功
+
+分两件事查，结论差别很大。
+
+**A. EDL 线能不能进 9008（本机同代）—— 有成功案例。**
+YouTube《EASY STEP BY STEP TUTORIAL SAMSUNG EDL MODE | S25 | S24 | S23 with EDL CABLE》明确是
+S23/S24/S25 用 **EDL 线**进 9008 的步骤（视频里挂了 Amazon 链接），评论区还提到"EDL v2 无按键线，
+可能就是老的 300k 电阻法"。所以**线这条路不用拆机、可用性有旁证**。
+
+**B. 在 locked BL 上通过 EDL 刷 custom 镜像并开机 —— 基本没有成功案例。**
+- XDA《How to flash custom rom within EDL mode?》：评论直接说
+  *"There's no way to flash custom roms within EDL mode if the bootloader is locked"*；
+- 同一帖有人（Poco X4 Pro，同样 locked）实测：EDL 刷完工具显示 `FLASHING SUCCESS`，
+  开机却是 **"SYSTEM HAS BEEN DESTROYED"** —— 和我们 dd 写 patched `init_boot` 得到的
+  Security Error 是同一类结果，都是 AVB 在拦；
+- droidwin 那类"Supports Locked Bootloader"的标题，指的是**刷原厂分区**，不是 custom。
+
+**C. KG 锁通过 EDL 清除**：MobiFirms 等把它做成了付费远程服务（"KG Lock Removal | Remote USB Unlock"），
+但**没有公开技术文章**说明它到底动了什么（EDL 写分区、还是真的碰了 TZ 状态）。
+这是唯一还值得向服务商验证的空白点。
+
+### 结论
+
+买线值得（几十块、不动手机），但要认清它能给的是：**进 9008、救砖、任意读写、以及做实验**
+（例如一次性把 patched `vbmeta`+`init_boot` 一起写进去，验证是不是真的只能到 "SYSTEM HAS BEEN DESTROYED"）。
+**它不会让 custom 镜像开机**，除非顺带解决 AVB —— 而 AVB 又回到了 TZ 状态。
