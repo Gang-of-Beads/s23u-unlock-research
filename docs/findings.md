@@ -1191,3 +1191,13 @@ TA 侧（cmd 13 → handler 0x8900）的字符串证据：`Unknown ITL magic(%02
 SamFrew 的文件链要走 CF 的 JS 挑战，`curl`（含完整浏览器头）只拿到挑战页；
 `samloader` 走 FUS 也 403（上游 auth 变了）。要拿到 AFZE1 整包得用真浏览器（或过 CF 的 cookie）下载，
 这条暂时挂起，等 L4 有结论再回来。
+
+### L4 继续：`0xf01e0010` 的来源
+
+按 "please check recovery message length"（VA 0xf3c99）找到引用点，它在 **ESS/recovery 家族（0x13d7c 附近）**，
+错误码形态是 `0xf04a00xx`；相邻还有 `0x1514/0x1515` 之类的上下文偏移和 `0x133000+0x3a8` 的指针表。
+说明 recovery 数据先过长度/长度-计数器校验，再进签名（`em_crypto_verify_recovery_data`）。
+
+我们拿到的 `0xf01e0010` 更早（另一处），而 `0xf0050014` 是最初的解析失败。
+下一步需要一个能打印"走到哪一条分支"的探针（目前只能靠错误码区分），
+建议顺序：先把长度和 ITL 语法按 `0xece60`–`0xed0b8` 的字符分支反出来，再对齐计数器。
