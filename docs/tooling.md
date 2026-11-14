@@ -295,3 +295,19 @@ adb shell su -c 'settings put secure default_usb_configuration mtp'   # 文件�
 设完连重启两次都稳定是 `mtp,adb`（`persist.sys.usb.config` 会保持 `sec_charging,adb` 不动，属于正常）。
 
 注意：`rndis`（USB 共享网络）在 macOS 上**没有驱动**，选了也认不到网卡；给手机供网要用 Wi-Fi 或 gnirehtet。
+
+## KG HAL 调用（`scripts/helpers/kgcall`）
+
+`kgcall.jar` 用 `ServiceManager.getService` + 手工写 interface token 直接 transact
+（`service call` 因 descriptor 不匹配会回 ENODATA）。用法：`Main <code> [int:0|ba:32]`。
+
+**必须先建 TZ 会话**（否则一律 `TACtx is NULL` → SIGKILL）：
+
+```bash
+adb push scripts/helpers/kgcall/kgcall.jar /data/local/tmp/kgcall.jar
+adb shell su -c 'setprop ctl.stop kgtaserv; sleep 1; setprop ctl.start kgtaserv; sleep 3'
+adb shell su -c 'CLASSPATH=/data/local/tmp/kgcall.jar app_process /system/bin dev.pi.kgcall.Main 12 int:0 ba:32'
+adb shell su -c 'CLASSPATH=/data/local/tmp/kgcall.jar app_process /system/bin dev.pi.kgcall.Main 7 int:0'   # getKgState
+```
+
+任何参数形状不对的调用都会把 oneshot 的 `kgtaserv` 打死，需要 `ctl.stop`+`ctl.start` 重来。

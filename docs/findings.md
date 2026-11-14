@@ -759,3 +759,40 @@ ESI 块只是附属数据。这也解释了为什么换任何块内容 `emInit` 
 再说 ESI 块：把 S24 样张里 0x34 的 16 字节 DID 换成我们的 `2004376D249F2911` 写回 steady，
 `emInit` 仍是 `0xf00b0010` —— 说明块首 0x20 字节（疑似哈希/加密）和后面的 `2525671334000AEF` 类字段
 没对上，TA 在解析内容前就拒了。
+
+## 32. KG HAL：TZ 会话终于能建起来（重启后 ctx 为 NULL 的解法）
+
+以前每次调 KG HAL 都是 `TACtx is NULL` → 返回 -1000 → 客户端被 SIGKILL。这次找到真正原因：
+**ctx 是懒创建的，由一个特定方法触发 `KGTA_Initialize`**（日志：`initializing kgta context...` →
+`lookupTA(tz_kg)` → `KGTA_Initialize`），不是由开机流程建。
+
+实测触发方法 = **code 12**（`setClientData` 形状：`int` + `byte[]`，32 字节即可）：
+
+```bash
+su -c 'setprop ctl.stop kgtaserv; sleep 1; setprop ctl.start kgtaserv; sleep 3'
+su -c 'CLASSPATH=/data/local/tmp/kgcall.jar app_process /system/bin dev.pi.kgcall.Main 12 int:0 ba:32'
+su -c 'CLASSPATH=/data/local/tmp/kgcall.jar app_process /system/bin dev.pi.kgcall.Main 7 int:0'
+```
+
+- code 12 返回成功（`00000000`），随后 **code 7（getKgState）返回 `2`**，与 prop `knox.kg.state=Active` 一致
+  —— KG TA 会话第一次真的通了；
+- 但会话**很脆**：任何参数形状不对的调用都会把 `kgtaserv` 打死（`/vendor/bin/hw/vendor.samsung.hardware.tlc.kg-service`
+  是 `oneshot`，死后 init 状态仍显示 `running`，必须 `ctl.stop` + `ctl.start` 才能再拉起）。
+- 重新拉起后 ctx 又是 NULL，要再走一次 code 12。
+
+### 状态相关方法的结果
+
+| code | 方法 | 结果 |
+| --- | --- | --- |
+| 7 | `getKgState` | 成功，恒 `2`（Active） |
+| 5 | `getClientData` | 成功，返回 36 字节（status+0x18+全零缓冲区） |
+| 12 | `setClientData` | 首次调用建 ctx；ctx 已存在时再调会被 SIGKILL（形状/时机敏感） |
+| 17 | `setUserCheckingState` | **TZ 稳定回错误码 `262`（0x106）**，改不了状态 |
+| 19 | `unlockScreen` | HAL 回 `error code:0`（TZ 接受），但状态仍是 2、prop 仍 `Active` |
+| 20–26 | `verify*` / `resetKgInfo` / `getTAInfo` / `provisionCert` | 参数形状不对即 SIGKILL，尚未定形 |
+| 18 | void 方法 | 成功返回 |
+
+结论没变：**`unlockScreen` 在 TZ 里是空的，`setUserCheckingState` 被 262 拒**，所以还是要 KG 服务器侧
+（登记/放行）或 EM token。但这次至少把「客户端触发」这条路彻底打通到 TZ 边界了，以前只能看到 -1000。
+
+工具源码与 jar 已收进仓库：`scripts/helpers/kgcall/`（`src/dev/pi/kgcall/Main.java` + `kgcall.jar`）。
