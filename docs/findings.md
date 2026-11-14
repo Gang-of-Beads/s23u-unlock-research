@@ -1269,3 +1269,32 @@ L3（sendFuseCmd）、L5（假 regInfo）、L8（AT+ENGMODES）** 还有意义�
 要真正推进 L5，必须拿到**真实的 regInfo 报文**（enrollment 时服务器下发），
 只能靠 `kg_mock_setup.sh` 起 MITM 让官方客户端跑一遍完整 enroll，再从 HAL 日志看它传了什么长度/形状。
 成本中等，且仍需证书才能过。**L5 暂记为"需客户端配合，单靠盲喂推不动"。**
+
+## 51. L5 起 MITM 时踩到的两个新坑（都记下来，避免重来）
+
+### 坑 1：`self_final.apk` 是旧版客户端的补丁，装不回新版本
+
+kgclient 已经自更新到更新版本（base.apk 8,274,473 字节），而仓库里的 `self_final.apk` 是 6,121,360 的旧补丁。
+bind 上去后直接 `ClassNotFoundException: com.samsung.android.kgclient.app.KGApplication` —— **dex 与新版本不匹配**。
+
+重建方法（本次已验证可行）：
+
+1. 先 `umount` 掉 bind，把当前 `base.apk` 拷出来；
+2. `apktool d` 后按新版类名打补丁：pinning 的两个 TrustManager 现在在 **`smali/p8/a.smali`、`smali/p8/b.smali`**（不再在 `l4/b`），
+   两个 `checkServerTrusted(...)V` 改成 `return-void`；
+3. pinning 配置类(`p8/d`) 里"列表为空就抛异常"的 `:cond_3` 分支改成返回空数组；
+4. `apktool b -f`（**必须 `-f`**，否则 apktool 3 会走缓存、产出残缺 dex 又崩在 ClassNotFound）。
+
+### 坑 2：组件全在 manifest 里 `enabled="false"`，`pm enable` 又改不动
+
+Samsung 把这些组件默认关掉、由 App 运行时自己 `setComponentEnabledSetting`。而 **`pm enable/disable` 对 kgclient 一律抛
+`SecurityException: Cannot disable a protected package`**（shell 和 root 都一样），
+`packages.xml` 还是 ABX 二进制格式，手改也麻烦。
+
+后果：装好补丁后**无法拉起 UI**（`am start ... LaunchActivity` → `does not exist`），
+广播（CONNECTIVITY_CHANGE / TIME_SET / BOOT_COMPLETED / SERVICE_STATE）也全都没反应 —— receiver 同样被禁用。
+所以 MITM 环境虽然起着，但客户端根本不发请求（`kg_mock.log` 为 0 行）。
+
+**下一步**：必须把旧补丁里"App 启动时自己启用组件"的那部分代码移植到新版本
+（旧版是在 `l4/b` 的静态方法里，新版该文件变成了接口，等价逻辑/调用点在 `com/samsung/android/kgclient/utils/k.smali` 一类工具类里），
+让 App 自己把 receiver/activity 打开，之后才能跑 enroll 流程。
