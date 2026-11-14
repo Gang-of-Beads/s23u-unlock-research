@@ -34,6 +34,8 @@
 - 有 root 后试过直接 dd 写 patched `init_boot`：**写得进去，但开机 AVB 拒绝**（Security Error 界面）。
   「临时变永久」要过两道门（Odin 的 KG 内容校验 + 开机 AVB 验签），dd 只买到第一道（`docs/findings.md` §28）。
 - 已刷回原厂 `init_boot` 并恢复临时 root。
+- 开机 USB 默认模式已改为 **文件传输 + adb**（`settings put secure default_usb_configuration mtp`，
+  两次重启验证稳定；用 `persist.sys.usb.config` 会被覆盖，见 `docs/findings.md` §29）。
 - `steady` 分区被写入过实验数据，原样备份在 `/data/local/tmp/steady.bak`。
 
 ## 已打通 / 卡点

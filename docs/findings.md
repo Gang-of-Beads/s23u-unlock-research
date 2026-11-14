@@ -716,3 +716,13 @@ ESI 块只是附属数据。这也解释了为什么换任何块内容 `emInit` 
 所以「临时 root 变永久」要过的是**两道**门，dd 只买到第一道的门票。恢复方式：进 Download 模式，
 `heimdall flash --INIT_BOOT /tmp/fwimg/init_boot.img`（分区名是全大写 `INIT_BOOT`，写成小写会被 PIT 拒），
 刷原厂内容在 KG `Active` 下是放行的，刷完正常开机、再重跑 `temp_root.py` 即可恢复 root。
+
+## 29. 开机默认 USB 模式：不是 `persist.sys.usb.config`，是 Secure 设置 `default_usb_configuration`
+
+想让机器开机自动进「文件传输 + adb」而不是仅充电。先按常规 `setprop persist.sys.usb.config mtp,adb`：
+**重启后被覆盖回 `sec_charging,adb`**（persist 值也被改写），不可用。
+
+在 `SecSettings.apk` 里找到 `DefaultUsbConfigurationPreferenceController` 与
+`usb_configuration_values`（`none/mtp/ptp/rndis/midi/audio_source`），定位到真正开关是
+`Settings.Secure.default_usb_configuration`。设 `mtp` 后**连续两次重启**都稳定起在 `mtp,adb`。
+`persist.sys.usb.config` 保持 `sec_charging,adb` 属正常（它记录"上一次实际状态"，不是默认值）。

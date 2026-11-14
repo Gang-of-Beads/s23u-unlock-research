@@ -280,3 +280,18 @@ adb shell getprop knox.kg.state                    # 期望不再是 Active
 ```
 
 KG `Active` 下刷原厂内容是放行的；刷完正常开机，再重跑 `scripts/temp_root.py` 恢复 root。
+
+## 开机 USB 默认模式（不再每次手动改）
+
+三星的「默认 USB 配置」不是 `persist.sys.usb.config` —— 直接 `setprop persist.sys.usb.config` 会在重启时被覆盖回去
+（实测 `mtp,adb` 写进去，重启后变回 `sec_charging,adb`）。真正的开关是 Secure 设置项：
+
+```bash
+adb shell su -c 'settings put secure default_usb_configuration mtp'   # 文件传输 + adb
+```
+
+可选值（取自 SecSettings 的 `usb_configuration_values`）：`none`(仅充电) `mtp` `ptp` `rndis` `midi` `audio_source`。
+用 UI 也一样：开发者选项 →「Default USB configuration」→ 选「Transferring files / Android Auto」。
+设完连重启两次都稳定是 `mtp,adb`（`persist.sys.usb.config` 会保持 `sec_charging,adb` 不动，属于正常）。
+
+注意：`rndis`（USB 共享网络）在 macOS 上**没有驱动**，选了也认不到网卡；给手机供网要用 Wi-Fi 或 gnirehtet。
