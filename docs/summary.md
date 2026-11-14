@@ -73,11 +73,19 @@ EM token 更难，因为叠了三层不确定：
 
 所以顺序：**KG 登记 → （仍不行再）EM token → （都不行）EDL。**
 
+## 外部资料（2026-11 检索）
+
+- `CamsShaft/arbitrary-R-W-for-steady-and-param-partitions`：uid 1000 读写 steady/param（frigate→`knox_native` socket）
+  + **完整 token 格式与生成脚本**（`scripts/emtools/engmode.py`）。需要泄露的 rootCA 私钥才能通关。
+- 固件清单核对（§41）：One UI 7 最高二进制 9 < 本机 10，**降级不可行**。
+- XDA 4808477：One UI 8 的 `no_oem_unlock` 限制被蓝牙级复现（改 users.xml + `service call oem_lock`），
+  结论与我们一致 —— **框架侧改完 BL 仍不解锁**，作者判断 BL 看的是 QFPROM `LCS STATE: PROD(3)`。
+
 ## 三条路（都需要外部条件）
 
 1. **KG 进状态 1/4** —— 让机主/商家把本机 IMEI 加进他们的 KG 租户（`registered:true` → enroll）。
    成功后 `provisionCert` 会有真证书，闸门直接放行。
-2. **拿签名 EM token** —— 有 token 后按 `docs/tooling.md` 的 runbook 灌入（工具必须改名 `emservice`）。
+2. **拿签名 EM token**（格式已公开，缺的是三星工程**叶子证书+私钥**。`findings.md` §40/§42） —— 有 token 后按 `docs/tooling.md` 的 runbook 灌入（工具必须改名 `emservice`）。
    需要 ESS 通道：自带服务的 SIM 或 ESS 凭据。ESS 走 CP，`emGetTimeRequest`/`emEssCommand` 现在会阻塞。
 3. **EDL（9008）** —— 绕开 `-5` 直接读写分区，可刷 patched `init_boot`、可随时救砖；
    需开背盖短接测试点或用 EDL 线。本机型号的 firehose loader 公开可得，

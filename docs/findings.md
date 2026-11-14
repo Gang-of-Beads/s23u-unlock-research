@@ -939,3 +939,76 @@ TA 里有一整套 crypto helper 字符串：`em_crypto_hmac`、`em_crypto_sha25
 - 唯一能让 TA 认的，还是三星签出来的真 token。
 
 附带的坏消息：连结构现在都还没过第一关（任何改动都停在 `0xf02d0010`），所以连"摸到签名校验那一步"都需要先解决块首完整性字段。
+
+## 40. 外部资料命中：token 格式被公开（`CamsShaft/arbitrary-R-W-...`）
+
+网络检索（DDG via r.jina.ai）找到 XDA 帖 4797708 与仓库
+`CamsShaft/arbitrary-R-W-for-steady-and-param-partitions`（2026-08 发布，作者 peedsllaBoG）：
+
+- 他用 `frigate` socket（Android 15 起被悄悄改名 `knox_native`，SELinux 规则没跟上，成了孤儿）
+  在 **uid 1000** 下读写 `steady`/`param` —— 我们已有 root + QSEECom，这条不如现成手段，但可当旁路；
+- **仓库里带 `engmode.py`，把 token 格式写全了**：
+  - 前缀 `ENGRSS0002`（"Format B"），随后 `headerLen(4)` + **8 个段偏移**；
+  - 段结构 = `magic(4) + size(4) + count(4) + TLV`，段为 `TOKE/DEVI/ISSU/MODE/VALI/MODB/GRDB/INTE`；
+  - `INTE` = 段内 tag1 是 **256 字节 PKCS#1 v1.5 SHA-256 签名**、tag2 是 `设备证书 + 根证书` 串接；
+  - 签名覆盖 **header + 除 INTE 外的所有段**；作者明确说需要"泄露的 rootCA 私钥"才能真正解锁。
+
+已把脚本收进 `scripts/emtools/engmode.py`，并按本机改了 `did=2004376D249F2911`、`model_name=SM-S918B`。
+
+### 用它实测：错误码第一次从 `0xf02d0010` 往前走了
+
+自签 RSA-2048 设备证书 + 自签根证书生成 token 后灌入：
+
+| 版本 | 结果 |
+| --- | --- |
+| 原脚本（header 偏移顺序 toke,devi,issu,mode,vali,**inte,modb,grdb**） | `0xf0100015` = **"offset isn't normal"** |
+| 把 header 偏移改成**升序**（…vali,modb,grdb,inte） | `0xf02b0010`（更深一层） |
+
+补丁长度（4096/8192/16384/69632）都不影响。说明：**格式解析已被走到**，但 header 偏移必须严格升序，
+现在卡在下一层（`0xf02b` 家族来自按类型查表，`+index`）。
+
+### 另外拿到的 TA 字符串（说明校验强度）
+
+`em_crypto_verify_cert`、`Cert len isn't normal`、`root_ca_type : %d`、`Failed to read root CA pubkey`、
+`Failed to X509_verify`、`Unexpected sig size`、`Unexpected server cert size`、`Unknow type(0x%04x)`。
+即 TA 内**确有根 CA 公钥**并做完整 X509 链验证 —— 所以自签链大概率过不了最后一关，
+真正需要的是**能对上内置根公钥的证书链**（找泄露的 rootCA 私钥才有戏）。
+
+## 41. 「降到 One UI 7 找回 OEM Unlock」——按固件清单判定：不可行
+
+用公开固件库（SamFrew XSG 列表）核对了本机型号全部可达构建，二进制位与 UI 版本是对应的：
+
+| 二进制 | 构建（XSG） | 对应大版本 |
+| --- | --- | --- |
+| **9** | `S918BXXS9EZB/9EZC`、`S918BXXU9FZD` | One UI 7（E 段）/ One UI 8 早期（F 段） |
+| **A（=10）** | `S918BXXSAFZE … AFZI`、`S918BXXUAGZI` | One UI 8/8.5/9 |
+
+本机 `ro.boot.rp=10`、当前 `AFZH3` 属 A。**One UI 7 最高只到二进制 9，全部低于 10**，
+所以 ARB 直接拒 —— 连"只刷 AP"也救不了（AP 同样是二进制 9 签的）。这条与第 19 条一致，
+现在有清单级证据了。
+
+推论：One UI 7 有没 OEM 解锁开关已经无所谓，**够不着**。要拿回解锁只能：
+① 让 KG 进 1/4（服务器侧）；② 弄到真 EM token（见 §40 的格式与 §42 的证书要求）。
+
+## 42. 证书锚点到底长什么样（来自 S24 同代审计，与本地 TA 字符串一致）
+
+`keyarr/oems24-audit` 的 `root-to-boot-exploit-surface-analysis.txt` 把 TA 解析器写得很细，关键点：
+
+- INTE 的 tag2 是**叶子证书**（不是"设备证书+根证书串接"），根是**内置在 TA 里**的：
+  "两对 0x126 字节 SHA-256 pin 的 X.509 SPKI"，另外还认 `0xf4df0`/`0xf503c` 两个老 ENGRSS0002 槽位；
+- 校验分支：`keyUsage` 带 0xC0 之外的位 → 走特例，比较整段 DER 的 SHA-256 与硬编码摘要；
+  否则**必须有 subject CN == `EngineeringMode`**；
+- 叶子密钥必须是 **RSA-2048**（4096 时 PKCS#1 恢复只保留 256 字节，会先撞长度检查）；
+- 签名校验：`00 01 FF…FF 00` 去填充后与 `SHA-256(body)` 逐字节比对；
+- DID 末两字节 `11`（零售）在 `0xe478` 被单独检查。
+
+所以"自签链能过"这个假设基本可以放弃：**必须是能对上那两个 pin 的叶子证书 + 对应私钥**（三星工程证书）。
+自签最多把解析推进到校验层（我们已经到 `0xf02b0010`），最后一关必然失败。
+
+### 检索结论（找泄露）
+
+- GitHub 代码搜索 `ENGRSS0002` 只命中上面这个审计仓库（它也只是分析，没有证书/私钥）；
+- 搜 `engmode token` / `EngineeringMode certificate` 没有公开的证书或私钥；audit 自己的结论是
+  "需要一份本机可接受的 mode-3 token"，同样卡住；
+- 因此**目前公开渠道没有可用的 EM 工程证书**。要过这一关，现实选项是：找有服务账号的工具/店家代签，
+  或者等有人放出 `em.img` 里的 pin 对应私钥。
