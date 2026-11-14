@@ -1142,3 +1142,36 @@ emservice HAL `getBytes` 直接 `memcpy(dst, …, mLen)` 不校验长度，dst �
 
 下一步最省事的做法：既然 `emGetModesBit` 是导出的，就直接照它的顺序抄一遍，
 把 cmd 换成疑似 setter（`22`）再试；或者干脆找 TA 里 bitmap handler 的真实 cmd 常量。
+
+## 47. L1/L4 实测记录（都推进了，但都被"格式"挡住）
+
+### L1：请求结构全解，且证明 opcode 只有一条
+把 `emGetModesBit` 逐条抄出来后，结构完全清楚：
+
+- payload header 是 **`01 <cmd>`**（byte0 版本、byte1 cmd，get modes 用 `0x15`）；
+- 然后是 `p+0x5f1` 的 flags、`p+0x25` 的 singleId、`p+0x611`（steady idx2 副本）、
+  `p+0x1f07d`（steady idx3 副本），总长 `0x21c7d`；
+- `em_tlc_send(payload, len=0x21c7d, rsp, &cap)`，**第二个参数是长度不是 opcode**；
+- 全库只有一条 opcode `0x21c7d`（13 处调用点都是它），真正的命令就是 header 里的 cmd 字节。
+
+实测：`preparePayload` 返回 0、`em_read_to_steady` 两次都返回 0，但 `em_tlc_send` 返回 **0 且 rlen=0**，
+而同进程紧接着调真正的 `emGetModesBit` 能拿到 `0xf02d0010`（TA 真的应答了）。
+→ 说明手搓的 payload 还没被 TA 接受，最可能是**少设了 header/长度字段**或需要 `emInit` 先建会话
+（我们这边 `emInit` 仍失败）。工具：`scripts/emset.cpp`。
+
+### L4：`emRecoveryData` 存在且走到了 ITL 解析
+`EngineeringModeWorld::emRecoveryData(const u8*, u32)` 是导出的，内部等价于
+`preparePayload(13,1)` + 把 blob 拷到 `p+0x11615`（长度写 `p+0x11611`）+ `em_tlc_send`。
+
+TA 侧（cmd 13 → handler 0x8900）的字符串证据：`Unknown ITL magic(%02x/%02x/%02x)`、
+`please check recovery message length`、`em_crypto_verify_recovery_data`、`em_esi_recovery`、
+`Recovery counter is invalid(core rcounter %d, esi rcounter %d)`、`Recovery counter type`。
+即它是 **ITL 格式 + 恢复计数器 + 签名**，且计数器要和 ESI 里的一致。
+
+实测（错误码在动）：
+- 原始 steady 块（11264）→ `0xf0050014`
+- 以 `ITL` 开头 + 1024 零 → **`0xf01e0010`**（换了分支，magic 被认）
+- `ITL` + 32/64/256/2048 零 → 都是 `0xf01e0010`；`ITL` + 11264（或 ITL+整块）→ `0xf0050014`
+
+结论：ITL magic 有效，卡在长度/计数器/签名。**这条路是活的**，下一步要像 token 一样把 ITL 结构摸出来
+（先找 `0xf46b7` 处 magic 比较之后的解析顺序，再看恢复计数器的字段位置）。
