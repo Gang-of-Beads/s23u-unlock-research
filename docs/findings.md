@@ -1214,3 +1214,20 @@ SamFrew 的文件链要走 CF 的 JS 挑战，`curl`（含完整浏览器头）�
 （要被证书加密/包一层 ESS 外壳），所以直接塞裸数据连 magic 都对不上位置。
 
 若成立，L4 最终也会回到"需要那张工程证书"。这条先记着，等证书线索有进展再回头。
+
+## 48. L2 实测：单刷 ABL 被 XBL 判 hash 不符 → 必须整 BL 一起换
+
+AFZE1 整包下完（Bifrost，16.2 GB，自动解密成 zip），取出 `BL_...AFZE1....tar.md5`，
+解压 `abl.elf`（4 MiB）后单独刷入 `abl` 分区：设备没进系统，Download 界面报 **hash 不对**
+——说明 ABL 的完整性由 XBL（或同批镜像）校验，**只换 ABL 不成立**。
+
+于是改走"整 BL 一起刷"：BL tar 里 31 个镜像按 `pitmap.json` 映射成 30 个分区，
+全部解压备好（`/tmp/afze_bl/`）。注意 heimdall 的两个坑：
+
+1. 参数列表最后一行必须有**换行**，否则最后一个 `--PART` 缺文件名 → 打印 usage 并报
+   `Missing parameter for argument: --XBL`；
+2. 一旦会话失败，设备侧状态变脏，之后连单分区都会 `Protocol initialisation failed`，
+   需要在手机上重新进一次 Download（强关 → 音量上+下插 USB → 音量上）。
+3. 现用 `batches`（6 分区/批）拆分，待重新进 Download 后继续。
+
+原 ABL 已备份：`/data/local/tmp/abl.bak`，sha256 `287599f5…`（= ZH3 官方镜像），可随时回退。
