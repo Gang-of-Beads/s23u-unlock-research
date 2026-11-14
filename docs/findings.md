@@ -742,3 +742,20 @@ ESI 块只是附属数据。这也解释了为什么换任何块内容 `emInit` 
 
 注意：`EM_CMD_INSTALL_TOKEN` 字符串在 0xf3926，但它落在 rodata 段、反汇编只出 `<unknown>`，
 按 adrp/add 组合找不到引用，需要先按段重建映像再做 xref。
+
+## 31. 有网以后：EM 不再阻塞，但会更快地撞回同一个码；token 请求接口也是死循环
+
+联网（Wi-Fi 192.168.1.231）后重跑 `emGetTimeRequest`：**不再卡死**，秒回 `0xf02d0010`
+（之前 >40 s 的阻塞确实是网络）。所以 ESS 的阻塞是网络问题，不是通道本身。
+
+`gsm.network.type` 变成 `IWLAN,Unknown`（modem 走 Wi-Fi 呼叫注册），SIM 的 WWAN 依旧 `OUT_OF_SERVICE`。
+
+新挖到的接口：`EngineeringModeWorld::emGetTokenRequest(const u8*,×5, u8*, u32*)`
+（符号 `_ZN20EngineeringModeWorld17emGetTokenRequestEPKhS1_S1_S1_S1_S1_PhPj`），工具写在 `scripts/emtreq.cpp`。
+调用返回 **`0xd04e0015`**（HLOS 侧码），换参数内容、长度都不变 —— 因为 **`emInit` 失败**它就直接退。
+
+于是出现死循环：`emInit` 说"没 token"，`emGetTokenRequest`（本该去要 token）说"init 没成功"。
+
+再说 ESI 块：把 S24 样张里 0x34 的 16 字节 DID 换成我们的 `2004376D249F2911` 写回 steady，
+`emInit` 仍是 `0xf00b0010` —— 说明块首 0x20 字节（疑似哈希/加密）和后面的 `2525671334000AEF` 类字段
+没对上，TA 在解析内容前就拒了。
