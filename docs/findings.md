@@ -1012,3 +1012,25 @@ TA 里有一整套 crypto helper 字符串：`em_crypto_hmac`、`em_crypto_sha25
   "需要一份本机可接受的 mode-3 token"，同样卡住；
 - 因此**目前公开渠道没有可用的 EM 工程证书**。要过这一关，现实选项是：找有服务账号的工具/店家代签，
   或者等有人放出 `em.img` 里的 pin 对应私钥。
+
+## 43. 「把二进制位改小」能不能行？—— 不能，因为计数器不在用户区
+
+先把语义理清：我们要的不是"让 BL 认为已解锁"，而是**让 ARB 接受比 10 低的镜像**（One UI 7 = 二进制 9）。
+这需要把设备侧的 rollback 计数从 10 改小。
+
+证据与推理：
+
+1. 设备侧计数是 `ro.boot.rp = 10`，由 **BL 在启动时写入**，用户区改 prop 无效（BL 从不读 prop）。
+2. PIT 里**没有 ARB/RP 分区**：查 `pitmap.json` 只有 `SEC_EFS/BKSECAPP/STORSEC/UEFISECAPP/SECDATA`，
+   没有 arb/rollback 类节点 → 计数不在可 dd 的分区里。
+3. Download 界面显示的是分组件计数 `RP SWREV: B10/K10/S10`，由 BL 内的常量与设备侧值比对，
+   设备侧值属 TZ/RPMB 一类一次性/单向存储（与 KG 状态同一层）。
+4. 想靠"改镜像里的 binary 字段"绕过也不行：那会破坏 AVB 摘要，locked 设备必须三星原签
+   —— 而原签镜像的 binary 字段本来就写死 9。
+
+也就是说 **ARB 和 AVB 是两道独立的门**，闯 One UI 7 要同时过：ARB（TZ 计数）挡在前面，
+AVB（原签）挡在后面。两者都不在我们能改的层（除非有 TZ 写能力，即又回到 KG/EM 那条线）。
+
+现实结论：**二进制位改不了**。要 One UI 7 只能等"能写 TZ 状态"的手段（KG 进 1/4 或 EM token）；
+一旦有了写能力，其实也就不需要 One UI 7 了 —— 那两样本身就能解锁/放行 custom 镜像。
+所以 One UI 7 属于"回头路"，不是"捷径"。

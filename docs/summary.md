@@ -22,7 +22,8 @@
 
 ## 试过但无效（别再重复）
 
-- 降级 One UI 7：rollback index 10 > One UI 7 的 8/9，ARB 拒。
+- 降级 One UI 7：rollback index 10 > One UI 7 的最高 9，ARB 拒；**改二进制位也不行**，
+  计数器在 TZ/RPMB（PIT 无 ARB 分区），改镜像字段又会破坏 AVB（`findings.md` §41/§43）。
 - 改 `param[0]`：只切启动模式（1=正常 3=Download），不解锁。
 - 写 `devinfo+0x0d=1`：跨重启保留，但仍 `green`、仍 `-5`（闸门先看 KG）。
 - `resetRPMB` / `setCheckingState` / `unlockScreen` / `kg30_*`：全部无效；
