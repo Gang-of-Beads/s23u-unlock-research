@@ -25,7 +25,8 @@
 - 降级 One UI 7：rollback index 10 > One UI 7 的 8/9，ARB 拒。
 - 改 `param[0]`：只切启动模式（1=正常 3=Download），不解锁。
 - 写 `devinfo+0x0d=1`：跨重启保留，但仍 `green`、仍 `-5`（闸门先看 KG）。
-- `resetRPMB` / `setCheckingState` / `unlockScreen` / `kg30_*`：全部无效。
+- `resetRPMB` / `setCheckingState` / `unlockScreen` / `kg30_*`：全部无效；
+  会话打通后重测仍如此（`setCheckingState` 被 TZ 回 262，`unlockScreen` 返 0 但不改状态）。
 - 自签 KG 证书 7 种组合：TZ 一律 `4097`；PEM 甚至解析阶段就 `264`。
 - `reboot edl`、misc BCB `boot-into-edl`：都只回普通重启。
 - 只有 `TOKE`/`NNTC`/ESI 块/`3f e4 e4` 前缀而无真 token：TA 一律 `0xf02d0010`（该码被多条分支共用）。
