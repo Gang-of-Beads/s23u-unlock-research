@@ -1083,3 +1083,46 @@ S23/S24/S25 用 **EDL 线**进 9008 的步骤（视频里挂了 Amazon 链接）
 买线值得（几十块、不动手机），但要认清它能给的是：**进 9008、救砖、任意读写、以及做实验**
 （例如一次性把 patched `vbmeta`+`init_boot` 一起写进去，验证是不是真的只能到 "SYSTEM HAS BEEN DESTROYED"）。
 **它不会让 custom 镜像开机**，除非顺带解决 AVB —— 而 AVB 又回到了 TZ 状态。
+
+## 46. 再挖本地路径：8 条新线索（含一条已经动手的）
+
+「本地还有没有别的办法」清点了一遍，剔除已证死的，剩下这些**还没试过**的：
+
+### L1（已动手）EM 层直接改位图，绕过 token
+审计里写明 TA 有 **bitmap 设置 handler（`0xea8c`）**，按 mode 列表（u16 数组，上限 0x80）逐位设置。
+如果能从 HLOS 直接发这条命令，**EM bit3 就能在没有 token 的情况下置位**。
+已确认可以走 `EngineeringModeWorld::emProcess(em_req_payload_t*, len, rsp, len*)`（`+8` 是 cmd 字段），
+工具 `scripts/emcmd`（`/tmp/emraw`）能正常调进 TA 并返回 0，但**cmd 编号还没对上**
+（TA 的 cmd 是大值，例如 `emGetTokenRequest` 用 `0x21c7d`，不是 1..37；1..37 是 T3 子命令），
+所以位图暂时没被改到（`getModesbit` 仍全 0）。下一步：从 `emGetModesbit` 的封装里读出它用的 cmd，
+再比邻找 bitmap 那条。
+
+### L2 同一二进制位内降级 ABL（不去 One UI 7）
+`AFZE/AFZF/AFZG` 都是二进制 A（ARB 不拦）。samroot23 说新的 ABL 把 Download 长按解锁入口换成了
+`return false`，但**下层流程还在** —— race 到更早的 A 版 ABL（比如 2026-05 的 AFZE1）可能入口还是活的。
+成功后就是正常解锁（orange、AVB 关）。代价：SamFrew 只给整包（约 16 GB）。
+
+### L3 `sendFuseCmd`
+HAL 里还有这条没调过，名字带 "Fuse" —— 有可能是让 TA 烧 LCS/EM 相关位。可用 kgcall/lite 试。
+
+### L4 `recoveryItl`
+HAL 方法，语义未知（ITL ≈ integrity）。若它会让 TA **重算 steady 的完整性字段**，
+那我们伪造的 ESI 块就能被"洗白"，EM 那条直接通。
+
+### L5 KG 侧喂假 regInfo
+`verifyRegistrationInfo`(26) 现在回 264（数据无效）。regInfo 结构可从 MITM 抓的
+`getKGStatus`/policy 流程里反推，喂进去看 264 会不会细化成"签名错/字段错"。
+
+### L6 HLOS 堆溢出（审计 C-2）
+emservice HAL `getBytes` 直接 `memcpy(dst, …, mLen)` 不校验长度，dst 是 `calloc(1,0xC800)`。
+只能拿 HLOS 代码执行（我们已有 root），但可用于**让 HAL 以更宽权限调用 TA**。
+
+### L7 EDL + patched vbmeta 一次性实验
+把 `vbmeta`（flags 置验证关闭）和 patched `init_boot` 一起通过 EDL 写入，验证是不是只能到
+"SYSTEM HAS BEEN DESTROYED"。需要线。
+
+### L8 `AT+ENGMODES` 原生 AT 通道
+`SatsService` / `EngModesCmdHelper` 会组 `0,2,` 前缀丢给 `commandForEss`。若能让 modem 认，
+可能绕开我们卡住的 binder/ESS 封装，直接喂 ESS 命令。
+
+**排序**：L1、L4（都不需要外部资源）＞ L2（16 GB 下载）＞ L3、L5 ＞ L6、L8 ＞ L7（需买线）。
