@@ -112,6 +112,11 @@ EM token 更难，因为叠了三层不确定：
 | 4 | **TZ 侧漏洞** | 研究投入 | 审计仓库给过候选面（如 HAL `getBytes` 未校验 `mLen` 的堆溢出） | 未知 | 高，纯研究 |
 | 5 | One UI 7 降级 | —— | 二进制 9 < 本机 10，ARB 必拒，计数在 TZ/RPMB | 低（需先有写 TZ 的能力） | 16 GB 下载 + 白折腾 |
 
+### L2 已判负（2026-11-14）
+
+换二进制 A 里最早的 AFZE1 整套 BL，长按音量上仍**毫无反应** —— 老 ABL 也把入口摘了。
+另外确认 `abl` 由 `vbmeta` 哈希校验，BL 任何一件都不能单换。详见 `findings.md` §48/§49。
+
 ### 明确无效（不必再试）
 
 `param[0]`、`devinfo+0x0d=1`、PDP 位、`persist`/`sys.usb` 类 prop、直接 `dd` patched `init_boot`、

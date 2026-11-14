@@ -1231,3 +1231,25 @@ AFZE1 整包下完（Bifrost，16.2 GB，自动解密成 zip），取出 `BL_...
 3. 现用 `batches`（6 分区/批）拆分，待重新进 Download 后继续。
 
 原 ABL 已备份：`/data/local/tmp/abl.bak`，sha256 `287599f5…`（= ZH3 官方镜像），可随时回退。
+
+## 49. L2 结论：AFZE1（最早的二进制 A）长按解锁同样是死的 —— 整 BL 换完也无反应
+
+完整过程与结果：
+
+1. 单刷 `abl` → 开机报 `Calculated Hash of (abl) … (VBMETA) …`，说明 **`abl` 的哈希由 `vbmeta` 校验**，
+   单独换 ABL 必挂；
+2. 改刷整套 AFZE BL（30 个分区，含 XBL/TZ/vbmeta）→ `abl` 那条消失、换成 `boot` 不符
+   （因为 AP 还是 ZH3），符合预期、且不影响 Download 内测试；
+3. 在这个状态下**长按音量上 7 秒，屏幕毫无反应** —— 没有解锁确认页。
+
+所以 **AFZE1 的 ABL 也已把长按入口判死**（不是后来才补的），L2 这条本地捷径判负。
+附带确认了两个事实：Samsung 的 BL 分区被 `vbmeta` 哈希串联（不能单换任何一件）；
+`-5` 之外的"hash 不符"只是 AVB 开机校验，不影响进 Download。
+
+回退已完成：整套 ZH3 BL 刷回，设备正常开机、`green`、ABL sha256 回到 `287599f5…`（与官方一致），
+临时 root 也已恢复。
+
+### 对本地路线的意义
+
+L2（换旧 ABL）走完并失败，剩下的本地线索里 **只有 L1（EM 位图直改）、L4（recovery/ITL）、
+L3（sendFuseCmd）、L5（假 regInfo）、L8（AT+ENGMODES）** 还有意义，都离不开 TZ 状态。
