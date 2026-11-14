@@ -1034,3 +1034,25 @@ AVB（原签）挡在后面。两者都不在我们能改的层（除非有 TZ �
 现实结论：**二进制位改不了**。要 One UI 7 只能等"能写 TZ 状态"的手段（KG 进 1/4 或 EM token）；
 一旦有了写能力，其实也就不需要 One UI 7 了 —— 那两样本身就能解锁/放行 custom 镜像。
 所以 One UI 7 属于"回头路"，不是"捷径"。
+
+## 44. EDL 能不能不动硬件、只换根线？——机制上可以，但本机未验证
+
+**EDL 线的原理**就是"免拆版的短接"：USB 线里串一个 **约 300 kΩ 电阻把 D+ 拉到 GND**（带开关），
+开机时 charger/PMIC 检测到该状态，SoC 直接进 Sahara（9008），BL 不参与。所以它不是软件技巧，
+不需要 Root、不需要解锁、也不看 KG —— 这正是它能绕 `-5` 的原因。
+
+要点与限制：
+
+1. **是否吃这根线取决于机型**。网上对面 S918U 的教程写的是"关机 → 按住音量上+下 → 插 USB"，
+   不行才短接测试点或用 EDL 线。本机实测"音量上+下 + 插 USB"进的是 **Download 模式**（Odin），
+   `reboot edl` 和 misc BCB 也都无效，所以 S918B 大概率需要测试点或 EDL 线，**线能不能触发未知**。
+2. **firehose 必须是签名的**。已确认 `Alephgsm/SAMSUNG-EDL-Loaders` 公开提供
+   `S918B_Loader_alephgsm.com.elf` 和 `SM-S918B_prog_firehose_ddr.elf`（759,948 字节），型号精确匹配。
+3. **EDL 不等于解锁 AVB**。我们已用 root `dd` 实证：把 patched `init_boot` 写进去，开机会 Security Error。
+   EDL 只是把同样的写入变得不依赖 root，**custom 镜像仍然过不了 AVB**。
+4. EDL 的真实价值：**救砖 / 任意读分区 / 配合服务工具做 FRP-KG 类修复**；
+   不少商业工具（UnlockTool、Chimera 等）声称能在 Qualcomm 三星上通过 EDL 处理 KG，
+   这条要验证的是"它们是否真能改到 TZ 侧状态"，而不是仅清 App 数据。
+
+结论：**买根 EDL 线试是划算的**（几十块钱、不动手机、失败无损失），但要预期它换来的是
+"读写能力 + 救砖"，不是"直接解锁"。真正决定成败的仍是 TZ 状态。

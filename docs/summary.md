@@ -88,9 +88,8 @@ EM token 更难，因为叠了三层不确定：
    成功后 `provisionCert` 会有真证书，闸门直接放行。
 2. **拿签名 EM token**（格式已公开，缺的是三星工程**叶子证书+私钥**。`findings.md` §40/§42） —— 有 token 后按 `docs/tooling.md` 的 runbook 灌入（工具必须改名 `emservice`）。
    需要 ESS 通道：自带服务的 SIM 或 ESS 凭据。ESS 走 CP，`emGetTimeRequest`/`emEssCommand` 现在会阻塞。
-3. **EDL（9008）** —— 绕开 `-5` 直接读写分区，可刷 patched `init_boot`、可随时救砖；
-   需开背盖短接测试点或用 EDL 线。本机型号的 firehose loader 公开可得，
-   另有 CVE-2026-25262（Sahara 任意写，可绕签名）作备选。限制：开机 AVB 仍在。
+3. **EDL（9008）** —— 绕开 `-5` 直接读写分区、可救砖。EDL 线（300kΩ 拉 D+ 到 GND）是免拆版短接，
+   **能不能触发本机未知**；SM-S918B 的 signing loader 公开可得。限制：**不平 AVB**，custom 镜像仍要过签名。
 
 ## 环境现状的坑（做 EM/ESS 前先处理）
 
