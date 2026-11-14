@@ -1126,3 +1126,19 @@ emservice HAL `getBytes` 直接 `memcpy(dst, …, mLen)` 不校验长度，dst �
 可能绕开我们卡住的 binder/ESS 封装，直接喂 ESS 命令。
 
 **排序**：L1、L4（都不需要外部资源）＞ L2（16 GB 下载）＞ L3、L5 ＞ L6、L8 ＞ L7（需买线）。
+
+### L1 进展：payload 布局摸到了（`preparePayload`）
+
+`emGetModesBit` 的实现顺序确认了请求怎么造：
+
+1. `preparePayload(21, 1)` —— 参数就是 **(cmd, sub)**，返回值 0 才算成功；
+2. 该函数把 header 写成 **`01 15`**（byte0=版本 1，byte1=cmd），sub 放别处；
+3. 接着 `em_read_to_steady(3, buf, 0x2c00)` **自己读 steady idx3**；
+4. 再从 steady 里把字段灌进 payload，最后 `em_tlc_send`。
+
+也就是说：**只调 `preparePayload` 不够**，还要自己读 steady 并填字段。
+我们目前的 `emProcess` 调用返回 `rc=0 / rlen=0`（空跑），原因就在这。
+工具 `scripts/emcmd.cpp`（裸构造）和 `/tmp/emcmd2`（走 `preparePayload`）都留着。
+
+下一步最省事的做法：既然 `emGetModesBit` 是导出的，就直接照它的顺序抄一遍，
+把 cmd 换成疑似 setter（`22`）再试；或者干脆找 TA 里 bitmap handler 的真实 cmd 常量。
