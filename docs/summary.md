@@ -99,6 +99,39 @@ EM token 更难，因为叠了三层不确定：
 - Wi-Fi 也没连上（保存的网络 `AstraTech` 当前不在扫描结果里），设备实际**完全离线**。
 - ESS 走 CP，没蜂窝到不了 ESS；KG 只要账号还登着，离线一般不影响（`Active` 稳定）。
 
+## 绕过路线总表（按性价比排序）
+
+前提：`-5` = ABL 的 KG 内容闸门（表 `[1,0,1,1,0,1]`，只放行 1/4），后面还有 AVB。
+**任何一条都必须先让状态过闸门，再谈刷写。**
+
+| # | 路线 | 需要什么 | 现在到哪一步 | 成功率 | 代价 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | **KG 租户登记 + 后台放行** | 一个能进 Knox Guard 控制台的账号 / 愿意帮忙的租户 | 协议全抓、HAL→TZ 会话可建、状态可读（恒 2） | **高**（只要有人肯加 IMEI） | 找人；纯服务器侧，Wi-Fi 就够 |
+| 2 | **真 EM token** | 三星工程**叶子证书 + 私钥**（SPKI 被 pin、CN 必须 `EngineeringMode`、RSA-2048） | 格式已公开、解析已走到签名层（`0xf02b0010`）、灌入通道与 runbook 齐备 | 中低（公开渠道暂无证书） | 找服务/店家代签，或等泄露 |
+| 3 | **EDL（9008）** | 开背盖短接测试点 / EDL 线 + firehose | loader 公开可得，CVE-2026-25262 备选 | 中（能绕 `-5` 直写分区） | 动硬件；仍要处理 AVB（vbmeta+init_boot 一起动） |
+| 4 | **TZ 侧漏洞** | 研究投入 | 审计仓库给过候选面（如 HAL `getBytes` 未校验 `mLen` 的堆溢出） | 未知 | 高，纯研究 |
+| 5 | One UI 7 降级 | —— | 二进制 9 < 本机 10，ARB 必拒，计数在 TZ/RPMB | 低（需先有写 TZ 的能力） | 16 GB 下载 + 白折腾 |
+
+### 明确无效（不必再试）
+
+`param[0]`、`devinfo+0x0d=1`、PDP 位、`persist`/`sys.usb` 类 prop、直接 `dd` patched `init_boot`、
+`resetRPMB`/`setCheckingState`/`unlockScreen`/`kg30_*`、七种自签 KG 证书、`reboot edl` 与 misc BCB、
+自签 EM token 的所有前缀/长度组合。
+
+### 只治表面的
+
+- KG 客户端「绕过」教程（`device_provisioned=0` + AppOps 冻 EMM）：只是不想看锁屏，
+  **不改 TZ 状态**，`-5` 照旧；
+- `frigate`/`knox_native` socket 读写 steady：我们有 root + QSEECom，比它更直接；
+- 框架侧复现 OEM 解锁开关（改 `users.xml` + `service call oem_lock`）：能点亮开关，
+  BL 不认（XDA 同结论）。
+
+### 结论
+
+**先走 1。** 只有它不需要证书、不需要硬件、也不需要新漏洞；拿到放行后立即
+`heimdall flash --INIT_BOOT <patched>` 验证是否真的过了闸门（过了就等于持久 root 到手）。
+2 作为并行线继续找证书；3 是兜底（也能救砖）。
+
 ## 风险与注意
 
 - KG `Locked` 会锁屏并要求 KG PIN（服务器下发），届时只能靠机主登录账号 / 租户管理员 / 三星客服。
