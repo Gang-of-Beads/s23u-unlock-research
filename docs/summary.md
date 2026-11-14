@@ -30,7 +30,8 @@
 - 自签 KG 证书 7 种组合：TZ 一律 `4097`；PEM 甚至解析阶段就 `264`。
 - `reboot edl`、misc BCB `boot-into-edl`：都只回普通重启。
 - 只有 `TOKE`/`NNTC`/ESI 块/`3f e4 e4` 前缀而无真 token：TA 一律 `0xf02d0010`（该码被多条分支共用）；
-  ESI 块首 0x20 字节被清则退回到该码，说明那 0x20 字节是被校验的头。
+  ESI 块首 0x20 字节被清则退回到该码，说明那 0x20 字节是被校验的头，且 TA 内有
+  `em_crypto_hmac`/AES-GCM 全套 helper + 设备绑定种子（`getTAInfo(4)`）→ 头大概率是 HMAC，自算不出来。
 - **用 root 直接 dd 写 patched `init_boot`**：写进去了，但开机 AVB 拒绝 → Security Error 界面
   （KG 检查只在 Odin 会话里，dd 能过；kill 掉的是开机验签这第二道门）。见 `findings.md` §28。
 - 恢复手法（已验证）：进 Download → `heimdall flash --INIT_BOOT /tmp/fwimg/init_boot.img`

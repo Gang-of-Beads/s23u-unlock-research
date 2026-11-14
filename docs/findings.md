@@ -845,3 +845,30 @@ su -c 'CLASSPATH=/data/local/tmp/kgcall.jar app_process /system/bin dev.pi.kgcal
 `emInit` 从 `0xf00b0010` 退回 **`0xf02d0010`** —— 说明这 0x20 字节是 ESI 的**头/签名**，
 不通过的话 TA 连 item 表都不看。下一步要么解出它的算法（疑似 AES/hash，需 TA 内密钥），
 要么从真实设备上抓一份同型号的 steady 块来对照。
+
+## 35. `getTAInfo` 的形状与返回值（TA 内的设备身份绑定被证实）
+
+code 11 (`getTAInfo`) 的形状是 **`int` + `byte[]`**（只给 `int` 会被 SIGKILL——HAL 对空回复会打死客户端）。
+补一个 `byte[]` 后正常应答（字符串长度前缀 + 内容）：
+
+| index | 返回 |
+| --- | --- |
+| 1 | `2` |
+| 2 | `false`（= `CertProvisioned` 为假，与此前 framework 侧读数一致） |
+| 3 | `2` |
+| 4 | 32 字节 **`AAAA000000000000000004376D249F29…`** —— 前缀固定，后半段含我们 DID 的片段（`4376D249F29…`），即设备绑定标识 |
+| 0, 5–8 | 仍 SIGKILL（形状或前提不同） |
+
+说明 TA 里确实存了本机的绑定种子，所以「随便造数据」注定过不了校验。
+
+## 36. ESI 头算法的方向：HMAC
+
+TA 里有一整套 crypto helper 字符串：`em_crypto_hmac`、`em_crypto_sha256`、
+`em_crypto_aes_256_gcm_encrypt/decrypt`、`em_crypto_aes_256_ctr_*`，以及
+`EmgineeringMode20 AES256 … Label/Context, MSTG` 这类 key 标签。
+结合审计仓库"EM 状态在 RPMB `engmode`，走 `qsee_stor_*` + AES-GCM"的结论，块首 0x20 字节最可能是
+**用 TA 内部密钥（可能由 DID/efuse 派生）对整块算的 HMAC**，而不是可自算的简单 hash
+——这解释了为什么换了 DID、清了头都过不去，也解释了为什么必须真 token。
+
+要继续攻这条，只能：① 在 TA 里定位 `em_crypto_hmac` 的调用点与 key 来源（key 大概率在 efuse/TZ，仍需真 token 才能闭环）；
+② 搞到一台同型号真机的 steady 块做对照（能直接验证"头是否设备相关"）。
