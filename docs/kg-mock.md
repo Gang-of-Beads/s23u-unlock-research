@@ -236,9 +236,10 @@ root 又要等 60 秒 uptime gate，赶不上开机窗口。
 1. **ABL 不读 persistent data block**（整个 payload 里没有 PDP 相关串），只跟 TZ 的 `tz_kg` 通信，
    状态落在 **RPMB**（`StoreRPMBToBK`）。这解释了为什么我们写 PDP 位 ABL 毫无反应。
 2. **`-5` 大概率就是 KG 导致的**：`All binaries are not allowed to be flashed due to KG locked`
-   在 Odin 模块里就是刷写拒绝的分支。也就是说 **KG 一旦变 Normal，即使未解锁，
-   改过的 `init_boot` 也可能被接受** —— 这条比「解锁」本身更容易先拿到（持久 root）。
-3. 因此优先级调整：**先想办法让 TZ 的 KG 变 Normal**，其次才是解锁。
+   在 Odin 模块里就是刷写拒绝的分支。也就是说 **KG 一旦进到闸门认可的状态（反汇编表是 1/4，
+   不是字面的 "Normal"），即使未解锁，改过的 `init_boot` 也可能被接受** —— 这条比「解锁」本身
+   更容易先拿到（持久 root）。
+3. 因此优先级调整：**先想办法让 TZ 的 KG 进 1/4**，其次才是解锁。
 
 ### 工具链（可复用）
 

@@ -2,7 +2,7 @@
 
 > **状态：早期通用清单，当前实现路径已被推翻。** One UI 8.5 上「OEM 解锁」项默认被
 > `ro.boot.other.locked=1` 与 `knox.kg.state=Prenormal` 隐藏，且 KG 锁会把改过的镜像以 `-5` 拒刷。
-> 真实情况请看 `docs/findings.md`（尤其 2、4、17）与 `docs/d2-kg-lock.md`。本文只作按键/开关参考。
+> 真实情况请看 `docs/summary.md`、`docs/findings.md`（尤其 2、4、17）与 `docs/d2-kg-lock.md`。本文只作按键/开关参考。
 
 参考 i01.io 小米 14 那篇的「先判可行性」思路，但三星通道完全不同：**没有 fastboot，走 Download 模式 + Odin 语义**。
 
