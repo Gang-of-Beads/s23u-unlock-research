@@ -1253,3 +1253,19 @@ AFZE1 整包下完（Bifrost，16.2 GB，自动解密成 zip），取出 `BL_...
 
 L2（换旧 ABL）走完并失败，剩下的本地线索里 **只有 L1（EM 位图直改）、L4（recovery/ITL）、
 L3（sendFuseCmd）、L5（假 regInfo）、L8（AT+ENGMODES）** 还有意义，都离不开 TZ 状态。
+
+## 50. L5 试了一轮：`verifyRegistrationInfo` 只有"喂字符串才进解析，但一律 264"
+
+`kgcall` 支持 `str:` 参数后按各种形状喂 `verifyRegistrationInfo`(26)：
+
+| 形状 | 结果 |
+| --- | --- |
+| `ba:32 ba:32`、`ba:512 ba:256`、`ba:4096 ba:256`、`ba:1024 ba:1024`、`ba:2 ba:2`、`ba:16 str:x` | **SIGKILL**（回空） |
+| `str:{} ba:256`、`ba:256 str:{}`、`str:{"a":1} ba:256` | 进解析，**一律 `264`** |
+
+结论：第一个/第二个参数里**有一个是字符串**（大概率是 regInfo 文本或 base64），另一个是签名；
+但结构细节拿不到梯度 —— 264 是"数据无效"的统称，试不出更细的分支。
+
+要真正推进 L5，必须拿到**真实的 regInfo 报文**（enrollment 时服务器下发），
+只能靠 `kg_mock_setup.sh` 起 MITM 让官方客户端跑一遍完整 enroll，再从 HAL 日志看它传了什么长度/形状。
+成本中等，且仍需证书才能过。**L5 暂记为"需客户端配合，单靠盲喂推不动"。**

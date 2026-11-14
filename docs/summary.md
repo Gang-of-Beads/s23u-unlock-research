@@ -117,6 +117,11 @@ EM token 更难，因为叠了三层不确定：
 换二进制 A 里最早的 AFZE1 整套 BL，长按音量上仍**毫无反应** —— 老 ABL 也把入口摘了。
 另外确认 `abl` 由 `vbmeta` 哈希校验，BL 任何一件都不能单换。详见 `findings.md` §48/§49。
 
+### L5 需要客户端配合
+
+`verifyRegistrationInfo` 盲喂只能到 264（只有字符串形状能进解析）。要推进必须在 MITM 里让客户端跑
+enroll，从 HAL 日志取真实 regInfo 形状。见 `findings.md` §50。
+
 ### 明确无效（不必再试）
 
 `param[0]`、`devinfo+0x0d=1`、PDP 位、`persist`/`sys.usb` 类 prop、直接 `dd` patched `init_boot`、
