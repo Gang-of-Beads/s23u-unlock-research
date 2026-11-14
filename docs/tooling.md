@@ -311,3 +311,7 @@ adb shell su -c 'CLASSPATH=/data/local/tmp/kgcall.jar app_process /system/bin de
 ```
 
 任何参数形状不对的调用都会把 oneshot 的 `kgtaserv` 打死，需要 `ctl.stop`+`ctl.start` 重来。
+
+code→方法对照表（含参数形状与 TZ 错误码）见 `findings.md` §33。取方法表最省事的办法是
+`llvm-nm -D --defined-only /vendor/lib64/vendor.samsung.hardware.tlc.kg-V2-ndk.so`
+（该 so 的 dynsym 没 strip，32 个方法全在）。
