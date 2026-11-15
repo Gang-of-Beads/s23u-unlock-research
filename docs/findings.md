@@ -1362,3 +1362,36 @@ Samsung 把这些组件默认关掉、由 App 运行时自己 `setComponentEnabl
 下一步二选一：
 1. 把 CA 也装进"用户证书"（设置 → 安全 → 加密与凭据 → 安装证书），Chrome 才会信任并让我们抓到；
 2. 或在 smali 里把 `d(url)` 改成用 `WebView` 内嵌打开（走 conscrypt，现有 CA 就够）。
+
+## 55. 链路打通 + 两个现实结论（Chrome 不认我们的 CA；lookup 仍是未登记）
+
+### 链路现在真的通了
+
+用 `browserEnrollParam` 传 URL 后：Activity → 交给 Chrome → Chrome 打我们的 MITM。
+第一次卡在 **Chrome 首次运行向导**（`FirstRunActivity`，一直在 "Checking info…"），
+而 443 全量 iptables 影子会把它拖死 —— 临时 `iptables -t nat -F OUTPUT` 让它过完向导后就正常了。
+
+### 结论 1：Chrome 不信任注入的 CA
+
+页面直接报 **`NET::ERR_CERT_AUTHORITY_INVALID`**（我们只把 CA 注进了 conscrypt，Chrome 用自己的信任库）。
+点过一次 `Advanced → Proceed` 后请求就能进来（`kgreq.log` 出现 `GET gsl.samsunggsl.com/enroll`）。
+所以之后每次换 URL 都要点一次，或者改成内嵌 WebView。
+
+### 结论 2：真实 lookup 仍是 `registered:false`
+
+Mac 上直连真实服务端（绕开 pinning）：
+
+```
+POST https://gsl.samsunggsl.com/gksl/v1/lookup/device/kg
+→ 200 {"serviceInfo":{"registered":false,"serviceIdentifier":"KG",
+        "serviceUrl":["http://eu-gslu.samsunggsl.com:80","https://eu-gslu.samsunggsl.com:443"]}, ...}
+```
+
+和我们 MITM 抓到的历史结果一致：本机在任何租户里**都没登记**，所以服务端也不会下 policy，
+enroll 页面对它来说就是"新设备"。
+
+### 下一步
+
+1. 用真实 `serviceUrl`（eu-gslu）当 `browserEnrollParam` 走一遍，看它是引导登录/输入 PIN 还是直接 enroll；
+2. 顺手把 WebView 内嵌方案做了，省掉每次点证书告警；
+3. mock 侧要按 eu-gslu 的真实路径补 handler，否则页面出来也是 404。
