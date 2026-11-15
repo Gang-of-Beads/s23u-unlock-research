@@ -70,6 +70,8 @@ def request(flow: http.HTTPFlow) -> None:
         import base64 as _b
         dummy = _b.b64encode(b"FAKE").decode()
         body = json.load(open("/tmp/kgcerts/status.json"))
+        body["action"] = os.environ.get("KG_ACTION", "ENROLLMENT")
+        body["policyRequired"] = True
         flow.response = http.Response.make(200, json.dumps(body).encode(),
                                            {"Content-Type": "application/json"})
         return

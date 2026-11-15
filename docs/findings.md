@@ -1659,3 +1659,19 @@ POST af/.../getKGStatus                  (204)
 
 下一步：让 mock 的 getKGStatus 返回**带 action 的真实结构**（用之前 MITM 抓到的真实报文形态），
 驱动出 policy 请求或直接驱动出 enroll 页面 URL。
+
+## 69. 会给 action 了，但处理器不往下走
+
+按模型字段给 `getKGStatus` 应答里注入 `"action": "ENROLLMENT"`（另有 `policyRequired:true`），
+客户端返回 `200 -> within acceptable code range`、`onResponse - SUCCESS`，然后**就结束了**，
+不请求 policy、也不拉 UI。换成 `OVERDUE` / `WARNING` 一样。
+
+说明 action 被接受但**没有被处理器采纳**。可疑点：
+
+1. 我们的 `status.json` 是早先为"能解析"拼的最小体，缺 `lockInfo` / `serverTime` / `completeMsg`
+   这类字段，处理器可能在解析或判空前就 return；
+2. `action` 的处理分支在 `processors/i`（对比 `q8/a` 的枚举字符串），可能还要求 `certProvision` 等标志；
+3. 客户端此刻的 TA 状态被我们伪造成 `Checking`，某些分支只在 `Prenormal` 才走。
+
+下一步：把 `status.json` 补成"结构完整但内容为空"的版本（所有对象字段都给 null/空对象），
+并把 `processors/i` 里 `getAction()` 之后的分支读一遍，确定它到底依赖哪些字段才继续。
