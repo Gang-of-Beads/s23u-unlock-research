@@ -1538,3 +1538,23 @@ TA 侧也真的被调了（`getClientData` / `getTAInfo` / `getKgId`），说明
 
 下一步：在 `HttpClientSync` 失败分支打日志把完整 URL 打出来（或 hook `makeSyncPostCall` 打印），
 先确认 URL 形状，再判断是 URL 拼接还是 TLS 的问题。
+
+## 63. 找到了 gap 的正解：不是路由，是**证书 SNI 不匹配**；顺带确认 hosts 对 App 无效
+
+关键诊断手段：在 OUTPUT 加 `iptables -I OUTPUT 1 -p tcp --dport 443 -j LOG --log-prefix KGDST`，
+抓 `dmesg` 里的目的地址。结果发现每次都是**真实 ELB 的公网 IP**（`4.150.x`、`52.168.x`、`40.79.x`、`74.151.x` 轮换），
+而不是我们 hosts 里写的 `127.0.0.1` —— **`/system/etc/hosts` 的 bind 对 App 完全无效**
+（`ping` 也一样解析到公网 IP，重启 netd 后依旧）。
+
+这解释了为什么 3ms 就失败、mitm 一条日志都没有：所有 443 都被通用规则转到 **8443**，
+而 8443 的反向上游是 **gsl**，于是给 `eu-gslu` 的握手用了 **gsl 的证书** → SNI 与证书不符 → 客户端直接拒。
+
+### 结论与修法
+
+不需要再跟 IP 赛跑。既然通用规则会把任意 443 送到 8443（证书 = gsl，可被信任），
+**只要让客户端用 `gsl.samsunggsl.com` 作为 serviceUrl 就行**，`/af/` 本来就由 addon 改写到真实 eu-gslu。
+已把 mock 的 LOOKUP_BODY 改成 `serviceUrl=["https://gsl.samsunggsl.com:443"]`，
+并删掉 App 里 `shared_prefs/KG_shared_pref.xml` 的 `KG_SERVICE_URL/KG_UMC_CDN_URL` 让它重新 lookup。
+
+顺带发现：`KG_shared_pref.xml` 里已经存了 `SERVER_INFO_DATA`（含 `serverMsg`/`serverToken`），
+说明之前那次 getKGStatus 其实**已经被 TA/客户端解析过**，只是我们没看到网络层。

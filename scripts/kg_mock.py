@@ -34,7 +34,7 @@ LOOKUP_BODY = {
     "serviceInfo": {
         "registered": True,
         "serviceIdentifier": "KG",
-        "serviceUrl": ["http://eu-gslu.samsunggsl.com:80", "https://eu-gslu.samsunggsl.com:443"],
+        "serviceUrl": ["https://gsl.samsunggsl.com:443"],
     },
 }
 
