@@ -1634,3 +1634,28 @@ mock 现在按真实行为返回：lookup 200（registered:true）、getKGStatus
 结论：**不是 TLS、不是路由、也不是 pinning** —— 是主线程那条调用路径本身的问题
 （最可能是 `NetworkOnMainThreadException` 一类的本地判定，或被上层提前拦截）。
 下一步去看这次 getKGStatus 的调用方（`processors/a` 一侧），而不是继续在 `HttpClientSync` 里打点。
+
+## 68. 确认是主线程问题：改成后台线程后，那次 getKGStatus 也 SUCCESS
+
+把 `LookupKick` 从"主线程直接调 `l8/a.j(...)`"改成"起 `Thread` 跑 `LookupWork.run()`"后，
+之前稳定 -1 的那次 getKGStatus **变成 SUCCESS**，并且后续流程继续：
+
+```
+POST gksl/v1/lookup/device/kg            (200)
+POST af/.../getKGStatus                  (204)
+HEAD kgc20/KGC20.apk
+POST af/.../report                       (200)
+POST af/.../getKGStatus                  (204)
+```
+
+结论：那个 -1 就是 **`NetworkOnMainThreadException`**（异常 message 为 null、又走了共享 catch，
+所以只看到 "exception : null"）。以后所有 KG 网络调用都必须放在 worker 线程里。
+
+### 现在的位置
+
+协议链路全部打通并且全部命中 mitm，客户端会按 lookup/status/report 的回应继续跑。
+但**还没触发 UI 或 enroll**——因为 mock 的 `getKGStatus` 返回的是空的 204，
+客户端拿不到 action/policy，自然没有下一步动作。
+
+下一步：让 mock 的 getKGStatus 返回**带 action 的真实结构**（用之前 MITM 抓到的真实报文形态），
+驱动出 policy 请求或直接驱动出 enroll 页面 URL。
