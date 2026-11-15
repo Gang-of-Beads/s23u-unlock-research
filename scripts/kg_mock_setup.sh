@@ -34,6 +34,17 @@ start() {
 
   for p in 8443 8444 8445; do adb reverse "tcp:$p" "tcp:$p" >/dev/null || die "adb reverse $p 失败"; done
 
+  # 端口预检：先杀掉残留 mitm 并等端口释放，避免 "address already in use" 启动即退出
+  pkill -9 -f mitmdump >/dev/null 2>&1
+  for i in $(seq 1 20); do
+    busy=0
+    for p in 8443 8444 8445; do
+      nc -z 127.0.0.1 "$p" >/dev/null 2>&1 && busy=1
+    done
+    [ "$busy" = 0 ] && break
+    sleep 0.3
+  done
+
   [ -f /tmp/kgcerts/status.json ] || echo "警告：/tmp/kgcerts/status.json 不存在，getKGStatus 会 500" >&2
   rm -f "$LOG" "$REQ"
   PYTHONUNBUFFERED=1 nohup mitmdump \
@@ -43,6 +54,10 @@ start() {
     -s "$ROOT/scripts/kg_mock.py" --set ssl_insecure=true --set confdir=/tmp/mitmCA >"$LOG" 2>&1 &
   sleep 4
   # mitm 的输出是带缓冲的，别用日志判断，直接探端口
+  for i in $(seq 1 15); do
+    nc -z 127.0.0.1 8443 >/dev/null 2>&1 && break
+    sleep 0.3
+  done
   nc -z 127.0.0.1 8443 >/dev/null 2>&1 || die "mitmdump 没起来，看 ${LOG}"
 
   echo "环境就绪：日志 ${LOG} 请求 ${REQ}"

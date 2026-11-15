@@ -1608,3 +1608,29 @@ TA 侧也真的被调了（`getClientData` / `getTAInfo` / `getKgId`），说明
 
 直接改 `d0/l.post`：在 `getOutputStream()` 前后各打一条日志，并把这个调用的异常**单独** catch 打印类名
 （前面在共享 catch 上打 EXCLASS 没命中，就是因为根本不是那条分支）。
+
+## 67. 大进展：**三次请求全部 SUCCESS**（lookup / getKGStatus / report），只剩主线程那一次 -1
+
+这轮把 `d0/l` 的两个位置打点后，流程第一次真的跑起来：
+
+```
+RAWURL=.../getKGStatus      → onResponse - SUCCESS
+RAWURL=.../report           → onResponse - SUCCESS
+RAWURL=.../getKGStatus      → onResponse - SUCCESS     ← 以上都在 worker 线程
+RAWURL=.../getKGStatus      → onResponse - FAILURE code=-1   ← 这一次在主线程
+```
+
+mitm 侧也能看到完整请求体（report 报文里有 `reportType: REPORT_ERROR` 等字段）。
+mock 现在按真实行为返回：lookup 200（registered:true）、getKGStatus 204、report 200。
+
+### 剩下这一个 -1 的特点
+
+- 同一个 URL、同一个方法，**worker 线程成功、主线程失败**；
+- 失败是瞬时的，没有 Socket 活动；
+- 打印出来是 `@post - exception : null`，而且 `getStackTraceString()` 拿到的是 **null** ——
+  说明那个 catch 分支里的异常对象是空的（代码从别处 goto 进 catch 块），我们加的 `EXCLASS` 因为
+  `if-eqz p1` 守卫被直接跳过，所以一直没输出。
+
+结论：**不是 TLS、不是路由、也不是 pinning** —— 是主线程那条调用路径本身的问题
+（最可能是 `NetworkOnMainThreadException` 一类的本地判定，或被上层提前拦截）。
+下一步去看这次 getKGStatus 的调用方（`processors/a` 一侧），而不是继续在 `HttpClientSync` 里打点。
