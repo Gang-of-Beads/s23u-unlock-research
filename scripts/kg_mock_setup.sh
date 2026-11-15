@@ -40,7 +40,7 @@ start() {
     --mode reverse:https://gsl.samsunggsl.com@8443 \
     --mode reverse:https://pinning-02.secb2b.com@8444 \
     --mode reverse:https://eu-gslu.samsunggsl.com@8445 \
-    -s "$ROOT/scripts/kg_mock.py" --set ssl_insecure=true >"$LOG" 2>&1 &
+    -s "$ROOT/scripts/kg_mock.py" --set ssl_insecure=true --set confdir=/tmp/mitmCA >"$LOG" 2>&1 &
   sleep 4
   # mitm 的输出是带缓冲的，别用日志判断，直接探端口
   nc -z 127.0.0.1 8443 >/dev/null 2>&1 || die "mitmdump 没起来，看 ${LOG}"

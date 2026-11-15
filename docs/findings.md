@@ -1414,3 +1414,24 @@ iptables -t nat -A OUTPUT -p tcp -d 52.211.134.225 --dport 443 -j REDIRECT --to-
 ```
 
 注意 eu-gslu 是 ELB，IP 会漂，换 IP 后要重加。加完后 `curl https://eu-gslu.samsunggsl.com/` 能通（404 是服务端正常反应）。
+
+## 57. 让 Chrome 走 MITM 的正确配置（gsl 已通）+ eu-gslu 被 DoH 卡住
+
+**已通的部分（gsl.samsunggsl.com）**：关键是
+① 每次测试前往 zygote ns 重新注入 CA，② 重启 Chrome，③ 用 `--set confdir=/tmp/mitmCA` 固定 CA（否则每次重启 mitm 都换 CA，信任就断）。
+做完这三步，Chrome 打开 `https://gsl.samsunggsl.com/enroll` 不再报证书错，mitm 日志直接能看到请求。
+
+**还没通的部分（eu-gslu）**：
+
+- 方向是对的：给 `/system/etc/hosts` bind 一份写了 `127.0.0.1 eu-gslu.samsunggsl.com` 的副本，
+  再加 `iptables -t nat -I OUTPUT 1 -p tcp -d 127.0.0.1 --dport 443 -j REDIRECT --to-ports 8445`，
+  `curl -k https://eu-gslu.samsunggsl.com/enroll` 就能打到 8445 并拿到应答；
+- 但 **Chrome 依然报 `ERR_CERT_AUTHORITY_INVALID`**，且 mitm 日志里没有它这次的连接 ——
+  典型原因是 **Chrome 自己的异步 DNS / Secure DNS(DoH) 绕过了 /etc/hosts**，解析到真实 ELB IP；
+  单独给 `52.211.134.225`、`99.80.45.82` 加 IP 规则也没能命中（ELB IP 会漂）。
+
+### 结论 / 下一步
+
+要在 Chrome 里稳定抓 KG 流量，得先让 Chrome 不用 DoH（设置 → 隐私和安全 → 使用安全 DNS 关掉），
+或者干脆回到**内嵌 WebView** 方案（WebView 走系统解析 + 我们已注入的 conscrypt，没有 DoH 问题）。
+经验上后者的确定性更高。
