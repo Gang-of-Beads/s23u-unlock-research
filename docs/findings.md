@@ -1719,3 +1719,31 @@ reply message - cmd:264, error code:520
 
 进展归纳：客户端侧已经能完整跑 enroll（lookup → initialEnroll → getKGStatus → report → getPolicy → 应用策略），
 唯一剩下的还是"签名"。真实证书/签名一旦有，这条链路就能走完。
+
+## 72. 网上搜"泄漏密钥 / 别的解锁办法"的结果：**有两条花钱能走的路**
+
+### 结论先行
+
+One UI 8 起三星把 OEM 解锁相关代码**从 bootloader 里整体剥掉**（XDA 4751904 分析到
+`androidboot.other.locked` 现在连非美版机型也会被 BL 传进 cmdline，等于"美国机待遇"），
+所以"拨个开关/改个属性"的软件技巧基本绝迹，公开渠道也没有泄露的 KG/EM 私钥。
+**剩下的可行方向就是花钱买"签名数据"**，而且有两家明码标价：
+
+1. **Global Unlocker Pro — EM-TOKEN**：服务列表里写着 `Write Token EM-TOKEN / All / all / 4.00`（credits），
+   最小起充 5 credits。他们工具负责按 IMEI 向服务端要 token 并写入。EM token 装的正是 mode 位图，
+   而我们反出来的 ABL 逻辑里 `GetEMBit(3)` 直接驱动 `SetUnlocked` —— 这条**理论上能真解锁**。
+2. **SAMTOKEN（sam-token.com）**：专门卖 "E TOKEN / EM TOKEN"，用途写的是刷 combination、
+   IMEI 修复、运营商解锁，走 WhatsApp 报价。
+
+### 对照我们的现状
+
+- 我们已经有**灌 token 的完整通道**（`scripts/eminst.cpp`，TA 直接 QSEECom，绕开 binder/RILD）；
+- 一旦拿到 token，直接 `eminst` 灌入 → `emInit` 应返回 0、mode 位被置 → 重启后 BL 侧 `SetUnlocked`；
+- 完全不需要再碰 KG、不需要证书链自造、也不需要 EDL。
+
+### 风险与注意
+
+- 这类 token 通常是给"刷 combination 固件"用的，是否含 **mode 3（解锁位）** 要问清楚，
+  最好让对方确认"用于解锁 bootloader / 含 mode 3"；
+- 花钱前可以先问他们是否支持 SM-S918B / XSG，以及失败是否退 credits；
+- 拿到后先只灌 token（不刷机）验证 `getModesBit` bit3 是否置位，再重启看 `verifiedbootstate`。
