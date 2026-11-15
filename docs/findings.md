@@ -1697,3 +1697,25 @@ POST af/.../getKGStatus                  (204)
 `kgPolicy` 应该是 **base64 包的策略 JSON**（`KGPolicy`: actions / generalInfo / metadata / policies）。
 按这个结构拼一份最小但合法的策略即可继续。`PolicyProcessor` 里对 `getBytes()` 的调用说明
 它确实期待可用字节流，不是空串。
+
+## 71. 策略被客户端接受并下发到 MDM，但 TA 侧仍然 520
+
+把 `kgPolicy` 换成 **base64(合法结构的最小 KGPolicy JSON)**（`actions`/`generalInfo`/`metaData`/`policies`）后，
+客户端不再报解析错误，而是真的开始执行策略：
+
+- `MDMUtils: removeIncomingCallExceptionPattern()` / `setIncomingCallExceptionPattern()` 等系统策略调用
+- `LsLogFile: Saving file:ENROLL...`
+
+但紧接着 TZ 侧失败：
+
+```
+system_server: TZ_KGTA:: jni process kgta_getKGPolicy
+KGTA_impls: inputtwostrings_output_string_forPolicy: comm_request returns empty data
+reply message - cmd:264, error code:520
+```
+
+即：**客户端能接受我们的假策略，但 TZ 里没有对应策略可读（520）**——因为策略要用真实密钥签名、
+并由 `verifyKgPolicy` 之类先灌进 TA。这跟前几轮的结论一致：**TZ 只认签名数据**。
+
+进展归纳：客户端侧已经能完整跑 enroll（lookup → initialEnroll → getKGStatus → report → getPolicy → 应用策略），
+唯一剩下的还是"签名"。真实证书/签名一旦有，这条链路就能走完。

@@ -79,7 +79,14 @@ def request(flow: http.HTTPFlow) -> None:
     if "getPolicy" in path:
         import base64 as _b
         fake = _b.b64encode(b"FAKE").decode()
-        body = {"kgPolicy": fake, "kgPolicySignature": fake, "essPolicy": fake,
+        policy = {
+            "actions": {},
+            "generalInfo": {"allowLastSeen": True, "companyName": "PIMOCK"},
+            "metaData": {"counter": 1, "kgId": "PIMOCK", "serverTimestamp": 0, "version": 1},
+            "policies": [],
+        }
+        kp = _b.b64encode(json.dumps(policy).encode()).decode()
+        body = {"kgPolicy": kp, "kgPolicySignature": fake, "essPolicy": fake,
                 "sfPolicy": fake, "sfPolicySignature": fake,
                 "customAppList": [], "customIconUrl": "", "customWallpaperUrl": ""}
         flow.response = http.Response.make(200, json.dumps(body).encode(),
