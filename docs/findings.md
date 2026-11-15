@@ -1395,3 +1395,22 @@ enroll 页面对它来说就是"新设备"。
 1. 用真实 `serviceUrl`（eu-gslu）当 `browserEnrollParam` 走一遍，看它是引导登录/输入 PIN 还是直接 enroll；
 2. 顺手把 WebView 内嵌方案做了，省掉每次点证书告警；
 3. mock 侧要按 eu-gslu 的真实路径补 handler，否则页面出来也是 404。
+
+## 56. 让 Chrome 信任 MITM 证书（不用再点 Proceed）+ eu-gslu 要单独接线
+
+Chrome 的问题是**不认注入到进程命名空间里的 apex CA 副本**（它只信系统/自身启动时拿到的）。
+两个改动合起来就通了：
+
+1. **每次运行前重新往 zygote 的 mount ns 注入 CA**，并**重启 Chrome**（`am force-stop com.android.chrome` 后再拉起），
+   这样 Chrome 及其 network service 从 zygote 继承到注入后的 `/apex/com.android.conscrypt/cacerts`，
+   `ERR_CERT_AUTHORITY_INVALID` 消失，mitm 日志能直接看到 `GET https://gsl.samsunggsl.com/enroll`。
+2. 另外把 `/system/etc/security/cacerts` 也整体 bind 了一份带 CA 的副本（对别的进程兜底），实测不影响 Chrome。
+
+`eu-gslu` 走的是另一个反向代理实例（8445），但 iptables 只把 443 全量转向 8443（并把 pinning 主机的固定 IP 转 8444），
+所以直接开 eu-gslu 会因为**SNI 与证书不匹配**再次报隐私错误。补一条按 IP 的规则即可：
+
+```bash
+iptables -t nat -A OUTPUT -p tcp -d 52.211.134.225 --dport 443 -j REDIRECT --to-ports 8445   # eu-gslu 的 ELB IP
+```
+
+注意 eu-gslu 是 ELB，IP 会漂，换 IP 后要重加。加完后 `curl https://eu-gslu.samsunggsl.com/` 能通（404 是服务端正常反应）。
