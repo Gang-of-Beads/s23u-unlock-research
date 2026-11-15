@@ -32,7 +32,7 @@ LOOKUP_BODY = {
     "clientDownloadUrl": ["https://umc-cdn.secb2b.com:443"],
     "kslUrl": ["https://eu-segd-api.secb2b.com:443"],
     "serviceInfo": {
-        "registered": False,
+        "registered": True,
         "serviceIdentifier": "KG",
         "serviceUrl": ["http://eu-gslu.samsunggsl.com:80", "https://eu-gslu.samsunggsl.com:443"],
     },

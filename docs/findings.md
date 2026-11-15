@@ -1513,3 +1513,28 @@ iptables -t nat -A OUTPUT -p tcp -d 52.211.134.225 --dport 443 -j REDIRECT --to-
 卡点：解析完就结束了，**没有自动拉起 enroll 界面**，也没有后续 getKGStatus。
 说明 `registered:false` 之后还需要别的字段/状态驱动（或需要 policyRequired 等），下一步从 `GSLManager` 的
 `composeGslDeviceRequest` / 回调分支看它拿到 false 后走哪条分支。
+
+## 62. 走到 getKGStatus 了，但请求瞬间失败（3ms，且没到 mitm）
+
+把 `LookupKick` 改成调 `l8/a.j("",false,false,cb)`（这个方法内部就是"先 lookup 再 getKGStatus"），
+并补了一个空实现的 `Ll8/b` 回调 `NullCb`（之前传 null 时是 `onResponse - null callback`）。
+
+现在 logcat 能走到：
+
+```
+NetworkManager: @getKGStatus
+NetworkManager: @makeSyncPostCall - EU-GSLU / KG_STATUS
+NetworkManager: @onResponse - FAILURE        ← 3ms 内就失败
+```
+
+TA 侧也真的被调了（`getClientData` / `getTAInfo` / `getKgId`），说明请求体在正常组装。
+但 **mitm 完全没收到这个连接**（`kg_mock.log` 无新行），3ms 也排除了 DNS 慢解析。
+
+怀疑方向（按可能性）：
+1. 客户端给 EU-GSLU 用的是**存下来的 serviceUrl 带 `:443`**，拼路径时可能拼成非法 URL；
+2. 或者走的是另一套 SSLContext / pinning TrustManager（我们只绕了 MPS 那两个 `p8/a`、`p8/b`），
+   握手在本地就被拒；
+3. 也可能 EU-GSLU 域名解析到了我们没覆盖的 IP（hosts 已指向 127.0.0.1，但 App 可能缓存过旧解析）。
+
+下一步：在 `HttpClientSync` 失败分支打日志把完整 URL 打出来（或 hook `makeSyncPostCall` 打印），
+先确认 URL 形状，再判断是 URL 拼接还是 TLS 的问题。
