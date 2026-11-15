@@ -122,6 +122,11 @@ EM token 更难，因为叠了三层不确定：
 `verifyRegistrationInfo` 盲喂只能到 264（只有字符串形状能进解析）。要推进必须在 MITM 里让客户端跑
 enroll，从 HAL 日志取真实 regInfo 形状。见 `findings.md` §50。
 
+### 客户端补丁：组件启用已打通（§52）
+
+新版本客户端已能重建补丁并跑起来（注入 `KGApplication.enableAll` 打开全部组件），
+enroll 界面能打开但停在 "Please wait…"、未发出 HTTP，卡在**前置状态**。见 `findings.md` §52。
+
 ### 明确无效（不必再试）
 
 `param[0]`、`devinfo+0x0d=1`、PDP 位、`persist`/`sys.usb` 类 prop、直接 `dd` patched `init_boot`、

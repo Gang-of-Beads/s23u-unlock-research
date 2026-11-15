@@ -1298,3 +1298,26 @@ Samsung 把这些组件默认关掉、由 App 运行时自己 `setComponentEnabl
 **下一步**：必须把旧补丁里"App 启动时自己启用组件"的那部分代码移植到新版本
 （旧版是在 `l4/b` 的静态方法里，新版该文件变成了接口，等价逻辑/调用点在 `com/samsung/android/kgclient/utils/k.smali` 一类工具类里），
 让 App 自己把 receiver/activity 打开，之后才能跑 enroll 流程。
+
+## 52. 打通「新版本客户端 + 组件启用」（重要，长期卡点已解）
+
+这一轮解决的是之前一直没解决的三个硬问题，虽然 enroll 还没跑起来，但基础通了：
+
+1. **旧补丁 dex 不匹配** → 按新版本类名重建（pinning 的 TrustManager 现在在 `smali/p8/a.smali`、`smali/p8/b.smali`；
+   配置类 `p8/d` 的"空列表即抛"改成返回空数组）。`apktool b` **必须加 `-f`**，否则缓存会产出残缺 dex。
+2. **组件全是 `enabled="false"` 且 `pm enable` 对受保护包无效** → 直接在 `KGApplication` 里注入一个
+   `enableAll(Context)`（数组 + 循环 `setComponentEnabledSetting`），在 `onCreate` 里调用。
+   进程一起来就把 10 个组件打开，`am start ... LaunchActivity / BrowserEnrollmentActivity` 都成功了。
+3. **`apply_kg_patch.sh` 两个坑**：目标文件是 root:root 644，`adb push` 会被拒（先在 root 里 `rm` 再 push）；
+   bind 会被占用导致 `umount` 失败（先 `kill` 掉 app 进程，再用 `umount -l`）。
+
+### 现状与新的卡点
+
+- 补丁版 App 能正常起，`kgtaserv` 初始化 OK、`getKgState` 读得到 2（Active）；
+- `BrowserEnrollmentActivity` 能打开，但界面停在 **"Please wait…"**，`kg_mock.log` 一行都没有
+  ——**客户端还没发任何 HTTP**；
+- 试过 `settings put global device_provisioned 0` 再重开，无变化；
+  `[KGAgent]EnrollmentCommon` 构造完就没有后续日志。
+
+下一步应顺着 `EnrollmentCommon` 的流程看它在等什么（很可能在等"KG 未登记/checking"这种前置状态，
+或等某个系统回调），再决定是补前置状态还是直接在 smali 里跳过等待。

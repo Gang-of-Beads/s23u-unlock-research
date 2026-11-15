@@ -7,13 +7,16 @@ PKG=com.samsung.android.kgclient
 SH="$(cd "$(dirname "$0")" && pwd)/root_exec.sh"
 
 adb shell "su -c true" >/dev/null 2>&1 || { echo "没有 root，先跑 temp_root.py" >&2; exit 1; }
+bash "$SH" 'rm -f /data/local/tmp/self_final.apk' >/dev/null
 adb push /tmp/self_final.apk /data/local/tmp/self_final.apk >/dev/null
 P=$(adb shell "pm path $PKG" | sed 's/package://' | tr -d '\r')
 [ -n "$P" ] || { echo "拿不到 $PKG 的 APK 路径" >&2; exit 1; }
 
 # /system 是只读，不能直接 cp；用 bind mount 顶上（文件必须 644 + root:root，否则 ART 报
 # "Writable dex file ... not allowed" 直接崩）
-bash "$SH" "umount '$P' 2>/dev/null
+adb shell "su -c 'am force-stop $PKG'" >/dev/null 2>&1
+sleep 1
+bash "$SH" "umount -l '$P' 2>/dev/null || umount '$P' 2>/dev/null
   chown root:root /data/local/tmp/self_final.apk
   chmod 644 /data/local/tmp/self_final.apk
   chcon u:object_r:system_file:s0 /data/local/tmp/self_final.apk
