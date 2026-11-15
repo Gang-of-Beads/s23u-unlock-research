@@ -1451,3 +1451,22 @@ iptables -t nat -A OUTPUT -p tcp -d 52.211.134.225 --dport 443 -j REDIRECT --to-
 
 顺带：RootToolbox 这个仓库是 **TrickyStore keybox / 认证检测** 工具，对解锁 BL 没有直接帮助，
 但能显示 `deviceLocked` / `VerifiedBootState` / 认证根证书类型（含三星 Knox 根），可当状态诊断用。
+
+## 59. onResume 接管成功：内嵌 WebView 跑起来了，而且真的打开了 eu-gslu 页面
+
+做法：
+
+1. `BrowserEnrollmentActivity.onResume` 里如果 intent 带 `browserEnrollParam`，就 `removeExtra` 后
+   启动一个**已声明的** Activity 并把 URL 放进 extra `u`（新加的活动不生效，因为 PM 只在装包时解析 manifest，
+   bind mount 改动要重启才认 —— 所以复用现有的 `LaunchActivity`）；
+2. `LaunchActivity.onCreate` 开头加分支：有 `u` 就建 WebView、开 JS、`loadUrl` 然后 `return`，否则走原逻辑。
+
+结果（`browserEnrollParam=https://eu-gslu.samsunggsl.com/enroll`）：
+
+- 顶层 Activity 变成 `LaunchActivity`，**Chrome 不再参与**；
+- mitm 日志出现来自设备的请求（`127.0.0.1:57xxx GET https://eu-gslu.samsunggsl.com/...`），
+  **没有证书错误**（WebView 走 conscrypt，正好用上我们注入的 CA）；
+- 页面真的渲染出来了，标题是 **"Device Services"** —— 这是 eu-gslu 的真实页面。
+
+至此客户端→服务端这条链路完全在本地可控了。下一步就是看这个页面要什么（登录/租户/PIN），
+并在 `kg_mock.py` 里按 eu-gslu 的真实路径补 handler，观察客户端如何解析 enroll 结果。

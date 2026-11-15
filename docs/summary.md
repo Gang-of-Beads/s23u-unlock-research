@@ -125,7 +125,8 @@ enroll，从 HAL 日志取真实 regInfo 形状。见 `findings.md` §50。
 ### 客户端补丁：组件启用已打通（§52）
 
 新版本客户端已能重建补丁并跑起来（注入 `KGApplication.enableAll` 打开全部组件），
-enroll 界面能打开但停在 "Please wait…"、未发出 HTTP，卡在**前置状态**。见 `findings.md` §52。
+现在 enrollment 已能在**内嵌 WebView** 里直达真实 eu-gslu 页面（"Device Services"），链路本地可控，
+见 `findings.md` §59。
 
 ### 明确无效（不必再试）
 
