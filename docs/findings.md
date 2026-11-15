@@ -1574,3 +1574,17 @@ TA 侧也真的被调了（`getClientData` / `getTAInfo` / `getKgId`），说明
 
 另外这轮还确认了一条重要信息：请求头带 `X-CLIENT-THREATEN-INFO: NOK NOK green 1 N 1 1`
 和 `X-CLIENT-DEBUG-INFO: ... Checking ...`，说明我们伪造的 Checking 状态已经进到协议里了。
+
+## 65. 异常类型日志没打出来（说明走的不是那个 handler）
+
+在 `d0/l` 的 `@post - exception : ` 打印点前面插了 `EXCLASS: <异常类名>`，并在 `p1` 为 null 时跳过。
+结果仍然只有 `@post - exception : null`，**EXCLASS 一次都没输出** ——
+说明真正命中失败的是另一个 catch 分支（同一个字符串在 `d0/l` 里有多处复用）。
+
+「exception : null」本身也很可疑：`getStackTraceString()` 返回 "null" 通常意味着拿到的 Throwable 是 null，
+所以那条打印点拿到的不是真正的异常对象。
+
+下一步可行的观测点（按成本排序）：
+1. 在 `NetworkManager.onResponse` / 调用方判定 FAILURE 处打印返回值，确认是 `-1` 还是别的；
+2. 给 `HttpClientSync.post` 的返回值加日志，看它从哪个分支返回；
+3. 用 `strace`-类手段不现实，退而直接改 `HttpsURLConnection` 相关调用点包一层 try 打印。
