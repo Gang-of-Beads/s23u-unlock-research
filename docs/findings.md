@@ -1470,3 +1470,25 @@ iptables -t nat -A OUTPUT -p tcp -d 52.211.134.225 --dport 443 -j REDIRECT --to-
 
 至此客户端→服务端这条链路完全在本地可控了。下一步就是看这个页面要什么（登录/租户/PIN），
 并在 `kg_mock.py` 里按 eu-gslu 的真实路径补 handler，观察客户端如何解析 enroll 结果。
+
+## 60. WebView 通了，但 `/enroll` 不是真实路径（页面还是 404）
+
+澄清一个误判：WebView 里看到的 "Device Services" 其实是 **KG 客户端自己的 Activity 标题**
+（`@string/app_name`），不是页面内容。真实请求只有 `GET /enroll`，命中 404；
+从 Mac 直连真实服务端枚举 `/`、`/kg`、`/kg/v1/enroll`、`/device/enroll`、`/sal`、`/enrollment` 等**全部 404**。
+
+所以缺的是**正确的 enroll 页面 URL**。线索在代码里：
+
+- `BrowserEnrollmentActivity` 的 param 来自 `processors/b.a`（静态字段）；
+- 该字段在 `h8/c`（KGSP action 处理）里按枚举分支赋值，其中只有 `URL_FORBIDDEN` / `NON_KG` 是固定串，
+  正常情况赋的是**服务端消息里带的 URL**（`h8/c` 里那个 `v5`）；
+- 也就是说：**只有真正跑过一次 KGSP 交互（lookup→policy/action 消息）才会拿到 URL**，
+  硬猜路径没用。
+
+### 下一步
+
+1. 让客户端自己做一次 lookup：现在组件和 WebView 都通了，剩下的是把"Active 不触发 lookup"绕开
+   （临时改状态 or 直接调用 `l8/a` 的 lookup 方法）；
+2. 拿到服务器回的 action 消息后，`processors/b.a` 就会有真实 URL，WebView 直接打开它，
+   mitm 也能看到完整交互；
+3. 之后再谈在 mock 里伪造这些消息。
