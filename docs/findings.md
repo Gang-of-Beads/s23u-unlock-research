@@ -1558,3 +1558,19 @@ TA 侧也真的被调了（`getClientData` / `getTAInfo` / `getKgId`），说明
 
 顺带发现：`KG_shared_pref.xml` 里已经存了 `SERVER_INFO_DATA`（含 `serverMsg`/`serverToken`），
 说明之前那次 getKGStatus 其实**已经被 TA/客户端解析过**，只是我们没看到网络层。
+
+## 64. 改成 gsl 地址后 URL 正确了，但 HTTPS 连接仍在 1ms 内失败（且带 mutual auth）
+
+按 §63 的方案把 serviceUrl 改成 gsl 后：
+
+- `RAWURL=https://gsl.samsunggsl.com:443/af/v1/sal/devices/enhanced/getKGStatus`（**URL 正确**）
+- 证书这一步也过了：`CertificatePinning: certsTrusted.isEmpty() : false`（我们给 `p8/d.c` 的兜底改成
+  `TrustManagerFactory("X509").getTrustManagers()` 生效了，不再抛 "Pinning data is empty"）
+- 紧接着 `@setupConnection - setting mutual auth done` → `setting up connection...DONE` → **1ms 后 FAILURE**
+
+也就是说 SSL 上下文建好了（连客户端证书都装了），但 `connect()` 立刻失败，mitm 依旧没有连接日志。
+排查提示：`@post - exception : null` 打不出栈，下一步把 catch 改成打印 `getClass().getName()`，
+先拿到异常类型（`SSLHandshakeException` / `ConnectException` / `IllegalArgumentException` 指向的方向完全不同）。
+
+另外这轮还确认了一条重要信息：请求头带 `X-CLIENT-THREATEN-INFO: NOK NOK green 1 N 1 1`
+和 `X-CLIENT-DEBUG-INFO: ... Checking ...`，说明我们伪造的 Checking 状态已经进到协议里了。
