@@ -1588,3 +1588,23 @@ TA 侧也真的被调了（`getClientData` / `getTAInfo` / `getKgId`），说明
 1. 在 `NetworkManager.onResponse` / 调用方判定 FAILURE 处打印返回值，确认是 `-1` 还是别的；
 2. 给 `HttpClientSync.post` 的返回值加日志，看它从哪个分支返回；
 3. 用 `strace`-类手段不现实，退而直接改 `HttpsURLConnection` 相关调用点包一层 try 打印。
+
+## 66. 改成"只劫持 KG 两个域名的 IP"后，pinning 查询变 true，但 -1 依旧
+
+之前用全量 443→8443，会把 Google 的连通性探测也劫持掉，NetworkMonitor 报
+`Trust anchor for certification path not found`，网络被标成未验证，客户端很可能因此提前放弃。
+
+改成**只按解析出来的 IP 劫持**（`dig +short gsl/eu-gslu` 拿到地址后逐条 `-I OUTPUT 1 ... -j REDIRECT`），
+其余流量走直连，于是：
+
+- `NetworkMonitor` 的探测恢复直连；
+- `@readPinnedCerts - certificate pinning query result : true`（之前是 false），pinning 数据也能拿到了；
+- 但 `getKGStatus` 仍 **`FAILURE code=-1`**，且这次连接连 mitm 都没落到（`kgreq.log` 里没有该请求）。
+
+也就是说：**"没有 SYN 就失败" 与网络验证无关**，更可能是 SSLContext/连接建立这一步在本地抛了。
+`code=-1` 是网络层统一返回值，看不出细分。
+
+### 下一步
+
+直接改 `d0/l.post`：在 `getOutputStream()` 前后各打一条日志，并把这个调用的异常**单独** catch 打印类名
+（前面在共享 catch 上打 EXCLASS 没命中，就是因为根本不是那条分支）。
