@@ -1321,3 +1321,23 @@ Samsung 把这些组件默认关掉、由 App 运行时自己 `setComponentEnabl
 
 下一步应顺着 `EnrollmentCommon` 的流程看它在等什么（很可能在等"KG 未登记/checking"这种前置状态，
 或等某个系统回调），再决定是补前置状态还是直接在 smali 里跳过等待。
+
+## 53. "Please wait…" 的根因：enrollment 需要一个 `browserEnrollParam`
+
+反到 `BrowserEnrollmentActivity.onCreate`：
+
+- 它先读一个**静态 Intent 字段**里的 `browserEnrollParam`（key 同名），读不到再退回 `processors/b -> a` 这个字符串；
+- 两者都空 → 界面就停在 `pleasewait`（"Please wait…"）进度条，不会发起任何网络请求；
+- 参数正常应由 **KGSP lookup** 的返回带出来（`m8/a` 里的 `/gksl/v1/lookup/`）。
+
+而 lookup 没被触发的原因也清楚了：`KGEventService` 收到 HANDLE_SERVICE_INTENT 后先 `getTAState`，
+读到 **Active** 就直接 `[STOP]` 收工 —— Active 意味着"已登记"，所以走不到 enroll 那段。
+
+用 `am start --es browserEnrollParam https://...` 试过：无效，因为代码读的是**静态字段**而不是启动 Intent 的 extras；
+带 extras 启动后 Activity 会自己 finish。
+
+### 下一步（三选一）
+
+1. 改 smali，让 `onCreate` 优先读启动 Intent 的 extras（最省事，改完就能喂 mock URL 观察 WebView 行为）；
+2. 让 TA 状态变回非 Active（`resetKgInfo` 无效，得伪造"未登记"）；
+3. 走 lookup：直接调用 `m8/a` 的 lookup 逻辑（需要构造请求、还要过 TLS/pinning —— pinning 已绕过）。
