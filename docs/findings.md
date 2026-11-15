@@ -1747,3 +1747,19 @@ One UI 8 起三星把 OEM 解锁相关代码**从 bootloader 里整体剥掉**�
   最好让对方确认"用于解锁 bootloader / 含 mode 3"；
 - 花钱前可以先问他们是否支持 SM-S918B / XSG，以及失败是否退 credits；
 - 拿到后先只灌 token（不刷机）验证 `getModesBit` bit3 是否置位，再重启看 `verifiedbootstate`。
+
+## 73. 调研补充：EDL 装载器公开、社区判定 Impossible、AIO 包只适用已解锁
+
+- `melontini/bootloader-unlock-wall-of-shame` 已把三星标 **Impossible**（"任何跑 One UI 8 或之后的机器"）。
+- XDA 4610061 的 `Userdata_AIO` 包（自带 patched UI7 `abl.elf` + vbmeta）明确写着
+  **"Must Have Unlocked Bootloaders"**、"如果设备 KG Locked 或没有 OEM unlock，这里帮不了你"——
+  也就是它对已解锁机器才成立，不能直接救我们。
+- XDA 4789266 是同一个诉求（S918B、One UI 8、想要能解锁的 abl）的帖子，**至今无成功案例**；
+  但里面公开了 bit **A** 的 firehose（`S918B-BIT-A-prog_firehose_ddr.zip`、`S918B_Loader_alephgsm.com.elf`），
+  且写明支持 `patch`/`program`/`erase`/`fixgpt`、`anti_rollback_version: 7`。
+- XDA 4426143 是 2015 年的 Lollipop 老办法（KingRoot 拿临时 root 后写状态再进 bootloader），
+  对现代机型就是我们已经试过的 `param`/`persistent` 那一套，无效。
+- 组合固件（combination）才是唯一带 engineering UI 的环境，但刷它本身就要 EM token，
+  所以和 EM 分支合流。
+
+结论汇总到 `docs/unlock-routes.md`：**只有 EM token 有机制支撑**，EDL 是物理兜底。

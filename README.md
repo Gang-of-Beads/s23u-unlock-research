@@ -60,6 +60,8 @@
 
 ## 文档
 
+- [docs/unlock-routes.md](docs/unlock-routes.md) — 还能走的解锁路线与判断（EM token / EDL / combo）
+
 - `docs/summary.md` — **阶段总结：能力、工具、证据、卡点（先看这个）**
 - `docs/findings.md` — 全部实测结论与错误码（含每条的证据）
 - `docs/d2-kg-lock.md` — D2 错误与 KG 锁定的坑与恢复通道（动 KG 前必读）
