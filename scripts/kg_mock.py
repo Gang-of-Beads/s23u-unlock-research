@@ -76,7 +76,17 @@ def request(flow: http.HTTPFlow) -> None:
                                            {"Content-Type": "application/json"})
         return
 
-    if "getPolicy" in path or "/report" in path or path.endswith("/kgc20/KGC20.apk"):
+    if "getPolicy" in path:
+        import base64 as _b
+        fake = _b.b64encode(b"FAKE").decode()
+        body = {"kgPolicy": fake, "kgPolicySignature": fake, "essPolicy": fake,
+                "sfPolicy": fake, "sfPolicySignature": fake,
+                "customAppList": [], "customIconUrl": "", "customWallpaperUrl": ""}
+        flow.response = http.Response.make(200, json.dumps(body).encode(),
+                                           {"Content-Type": "application/json"})
+        return
+
+    if "/report" in path or path.endswith("/kgc20/KGC20.apk"):
         flow.response = http.Response.make(200, b"{}", {"Content-Type": "application/json"})
         return
 

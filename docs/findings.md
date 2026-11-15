@@ -1675,3 +1675,25 @@ POST af/.../getKGStatus                  (204)
 
 下一步：把 `status.json` 补成"结构完整但内容为空"的版本（所有对象字段都给 null/空对象），
 并把 `processors/i` 里 `getAction()` 之后的分支读一遍，确定它到底依赖哪些字段才继续。
+
+## 70. 用 reportType=ENROLLMENT 触发了完整 enroll 流程（重大推进）
+
+关键发现：`processors/b->a` 存的不是 status action，而是 **report 的 `reportType`**；
+`reportType == "ENROLLMENT"` 时客户端才调 `d8/a.a(0x16)` 进入初始登记流程。
+
+在 `LookupWork` 里 lookup 之后补一句
+`processors/b.a().c("{\"reportType\":\"ENROLLMENT\"}")`，立刻看到：
+
+- `ReportProcessor: reportType: ENROLLMENT`
+- 请求头出现 **`initialEnroll`**（`X-CLIENT-DEBUG-INFO: ... initialEnroll Checking ...`）
+- 客户端连续发：`leafcert` → `getKGStatus` → `report` → **`getPolicy`** → `report(error)`
+- `PolicyProcessor: @fetchPolicyFromServer - taVersion : 2`
+
+也就是说**服务端交互全链路都走通了**，现在只差 getPolicy 的**响应体格式**：
+我们返回的假 `{kgPolicy:"RkFLRQ==",…}` 解析不过，客户端报 `@sendErrorReportToServer`（error 100077）。
+
+### 下一步
+
+`kgPolicy` 应该是 **base64 包的策略 JSON**（`KGPolicy`: actions / generalInfo / metadata / policies）。
+按这个结构拼一份最小但合法的策略即可继续。`PolicyProcessor` 里对 `getBytes()` 的调用说明
+它确实期待可用字节流，不是空串。
