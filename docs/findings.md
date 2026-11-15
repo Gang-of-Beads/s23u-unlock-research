@@ -1341,3 +1341,24 @@ Samsung 把这些组件默认关掉、由 App 运行时自己 `setComponentEnabl
 1. 改 smali，让 `onCreate` 优先读启动 Intent 的 extras（最省事，改完就能喂 mock URL 观察 WebView 行为）；
 2. 让 TA 状态变回非 Active（`resetKgInfo` 无效，得伪造"未登记"）；
 3. 走 lookup：直接调用 `m8/a` 的 lookup 逻辑（需要构造请求、还要过 TLS/pinning —— pinning 已绕过）。
+
+## 54. 方案 1 成功：`browserEnrollParam` 现在能从启动 extras 传入
+
+改法：`BrowserEnrollmentActivity.onCreate` 里把"读静态 Intent 字段"换成
+`getIntent().getStringExtra("browserEnrollParam")`（保留原来的 `processors/b.a` 兜底）。
+
+效果确认（`am start ... --es browserEnrollParam "https://gsl.samsunggsl.com/enroll"`）：
+
+- 进度条被隐藏、按钮显示出来，`onCreate → onStart → onResume`；
+- **1 秒后 App 自己 `finishActivity`** —— 这是设计行为：类名就叫 BrowserEnrollment，
+  拿到 URL 后会交给**浏览器**打开，自己退出。
+
+### 新问题：交给浏览器后没有产生流量
+
+`kgreq.log` 里没有任何 `enroll` 请求。原因很可能是 **Chrome 用自己的信任库**，
+我们注入进 conscrypt 的 CA 对它无效（之前能抓到的都是 WebView 流量，`osname=android_webview`）。
+而 Chrome 在看不到受信证书时不会发出可被我们观察的请求（或直接报错页）。
+
+下一步二选一：
+1. 把 CA 也装进"用户证书"（设置 → 安全 → 加密与凭据 → 安装证书），Chrome 才会信任并让我们抓到；
+2. 或在 smali 里把 `d(url)` 改成用 `WebView` 内嵌打开（走 conscrypt，现有 CA 就够）。
