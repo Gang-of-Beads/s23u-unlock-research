@@ -1435,3 +1435,19 @@ iptables -t nat -A OUTPUT -p tcp -d 52.211.134.225 --dport 443 -j REDIRECT --to-
 要在 Chrome 里稳定抓 KG 流量，得先让 Chrome 不用 DoH（设置 → 隐私和安全 → 使用安全 DNS 关掉），
 或者干脆回到**内嵌 WebView** 方案（WebView 走系统解析 + 我们已注入的 conscrypt，没有 DoH 问题）。
 经验上后者的确定性更高。
+
+## 58. 内嵌 WebView 方案：活动已加好，但还没接上真正的"打开浏览器"出口
+
+新增了 `com.samsung.android.kgclient.ui.WvActivity`（最小 WebView：开 JS/DOM storage、读 extra `u`、loadUrl），
+并改 `c9/d`（原来用 `Patterns.WEB_URL` 校验后发 `ACTION_VIEW`）为启动 `WvActivity`。
+
+结果：**enrollment 实际仍然开 Chrome** —— 说明主流程的"打开浏览器"出口不是 `c9/d`
+（`c9/d` 只被 `BrowserEnrollmentActivity` 用在 hint 链接的 span 上）。
+真正的出口还没定位：`WEB_URL` 全库只有 `c9/d` 一处，而 `q9/d` 只发内部 Activity，
+`processors/n` / `w8/b` 里是 `sendBroadcast` 为主。
+
+**下一步**：从 `BrowserEnrollmentActivity.a()`（清状态 + 1 秒后 finish）反查它之前谁负责开浏览器，
+或干脆在 `onResume` 里自己接管（拿到 param 就直接 `startActivity(WvActivity)` 并在 WvActivity 里跑流程）。
+
+顺带：RootToolbox 这个仓库是 **TrickyStore keybox / 认证检测** 工具，对解锁 BL 没有直接帮助，
+但能显示 `deviceLocked` / `VerifiedBootState` / 认证根证书类型（含三星 Knox 根），可当状态诊断用。
