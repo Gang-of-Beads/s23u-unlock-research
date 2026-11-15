@@ -29,13 +29,12 @@ def _dump(kind: str, flow: "http.HTTPFlow") -> None:
         pass
 
 LOOKUP_BODY = {
-    "clientDownloadUrl": ["https://gsl.samsunggsl.com"],
-    "kslUrl": ["https://gsl.samsunggsl.com"],
+    "clientDownloadUrl": ["https://umc-cdn.secb2b.com:443"],
+    "kslUrl": ["https://eu-segd-api.secb2b.com:443"],
     "serviceInfo": {
-        "profileId": "kgmock",
-        "registered": True,
-        "serviceIdentifier": "com.samsung.android.kgclient",
-        "serviceUrl": ["https://gsl.samsunggsl.com"],
+        "registered": False,
+        "serviceIdentifier": "KG",
+        "serviceUrl": ["http://eu-gslu.samsunggsl.com:80", "https://eu-gslu.samsunggsl.com:443"],
     },
 }
 

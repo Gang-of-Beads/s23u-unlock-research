@@ -1492,3 +1492,24 @@ iptables -t nat -A OUTPUT -p tcp -d 52.211.134.225 --dport 443 -j REDIRECT --to-
 2. 拿到服务器回的 action 消息后，`processors/b.a` 就会有真实 URL，WebView 直接打开它，
    mitm 也能看到完整交互；
 3. 之后再谈在 mock 里伪造这些消息。
+
+## 61. 突破：客户端自己发出了真实 lookup，并接受了我们的应答
+
+三处改动串起来后，链路第一次跑通：
+
+1. `KGApplication` 里 postDelayed 4 秒后调 `l8/a.k(true,false)`（用独立 Runnable `LookupKick`，
+   因为直接在 onCreate 调会撞 `l8/a.<clinit>` 的 `ExceptionInInitializerError`）；
+2. 修好之前踩的 VerifyError：`p8/d` 里"空 pinning 列表就 return 空数组"补丁**打错方法了** ——
+   打到了 `d(String)`（返回 X509Certificate），正确的是 `c(String)[LTrustManager;`；
+3. `kg_mock.py` 的 LOOKUP_BODY 按真实报文修正：`serviceIdentifier` 必须是 **`KG`**（之前填成包名，客户端回
+   "lookupservice info is not available or not KG"），`registered:false`，`serviceUrl` 指向 eu-gslu。
+
+结果（logcat 可复现）：
+
+- `POST gsl.samsunggsl.com/gksl/v1/lookup/device/kg` 真的发出去了；
+- 客户端自己开始 `setEnabledSetting` 打开 LaunchActivity / BrowserEnrollmentActivity；
+- 应答被解析：`HttpClientSync ... response code : [200] -> within acceptable code range`，`@gslLookup - end`。
+
+卡点：解析完就结束了，**没有自动拉起 enroll 界面**，也没有后续 getKGStatus。
+说明 `registered:false` 之后还需要别的字段/状态驱动（或需要 policyRequired 等），下一步从 `GSLManager` 的
+`composeGslDeviceRequest` / 回调分支看它拿到 false 后走哪条分支。
