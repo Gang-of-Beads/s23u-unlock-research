@@ -208,3 +208,14 @@ chmod +x ksud
 
 对比我们原来的结论（设 PIN 与 Download 互斥）——这条通道让"有锁屏 + 要进 Download"可以共存，
 值得作为 D2 的首选处理方式记录。
+
+### 实测补充（2026-11-16）
+
+KG `Active`、Wi-Fi 开、`locksettings get-disabled = true` 的前提下：
+
+1. `locksettings set-pin 1234` → 成功；
+2. `adb reboot download` → 设备**完全没有 USB 枚举**（`adb devices` 空、`ioreg` 无 `04e8`），
+   即停在没有 USB 的 D2 类错误屏。
+
+这点很重要：D2 屏**不枚举 USB**，所以隐藏 OTP 屏的数字必须**在机器上用手按音量键输入**，
+不能靠 PC；也正是"设了锁屏就进不了 Download"的物理原因。
