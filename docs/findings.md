@@ -1763,3 +1763,15 @@ One UI 8 起三星把 OEM 解锁相关代码**从 bootloader 里整体剥掉**�
   所以和 EM 分支合流。
 
 结论汇总到 `docs/unlock-routes.md`：**只有 EM token 有机制支撑**，EDL 是物理兜底。
+
+## 74. 读 XDA 4789266 全文：无成功案例，但拿到细节与反例
+
+- 帖子从 2026-05 挂到现在，**没有一次成功**；`imagefv.elf` 尺寸/映射对不上是硬伤，
+  作者认为必须拿到 GPT 分区偏移（Odin tar 里没有），有人已贴 bit A 的 `gpt_main*.bin` 但仍未进展。
+- 帖子里公开了 bit A 的 firehose（`S918B-BIT-A-prog_firehose_ddr.zip`，XDA 附件走 bunny 盾，需浏览器）。
+  我改从 `Alephgsm/SAMSUNG-EDL-Loaders` 直接拉到同一用途的 loader，存在 `/tmp/fh/`：
+  `S918B_Loader_alephgsm.com.elf`（真 ELF）、`SM-S918B_prog_firehose_ddr.elf`、`sm_s918b_prog_firehose_ddr.elf`。
+- 作者建议底包用 binary 9 的 `S918BXXS9EZB6`（ZTO），并明确说别用 One UI 8.5 的包。
+- **反例**：有一位用户在 One UI 8 / binary 8（KSA）上**成功解锁**过 —— 说明"One UI 8 绝对不可能"不成立，
+  更像是"更新后 toggle 是否还活着"的个体差异，也说明带解锁代码的 ABL 一旦回去流程就能走。
+- 另有一位用户和我们一样卡在 D2j 进不去 Download，佐证 D2 不是我们的用法问题。

@@ -25,6 +25,9 @@
 
 ## C. EDL / firehose（能绕过 Odin 的 ARB 与哈希）
 
+> 论坛原帖：XDA 4789266（SM-S918B，2026-05 起，至今无成功案例）。以下内容是它的实测细节。
+
+
 - **现状**：我们的 bit（A）的 firehose 已被公开：
   `Alephgsm/SAMSUNG-EDL-Loaders` 的 `S918B_Loader_alephgsm.com.elf`、`SM-S918B_prog_firehose_ddr.elf`；
   XDA 4789266 里还有人贴了 `S918B-BIT-A-prog_firehose_ddr.zip` 与 firehose 抬头（`anti_rollback_version: 7`、
@@ -33,6 +36,24 @@
 - **不能做**：开机时 ABL/vbmeta 的验签照样在，写进去的东西不合法就不启动。
 - **进入方式**：`reboot edl` 在本机不通，需要 **EDL 线 / 测试点短接**（我们之前判断"值得买一条"）。
 - **定位**：救砖 + 配合 A（万一 Token 写入被 Odin 侧拦），也是唯一的"物理级"兜底。
+
+### 原帖实测细节（重要，能省很多时间）
+
+- 帖子里有人已经贴过 bit A 的 firehose 包（`S918B-BIT-A-prog_firehose_ddr.zip`）和 bit A 的 `gpt_main*.bin`，
+  但**没人成功**；作者的结论是还缺 GPT 分区偏移表（Odin 的 tar 里没有这些）。
+- 用 Odin 的 BL/AP/CP/CSC 拆包喂 EDL，会在 `imagefv.elf` 上卡住（夸分区尺寸对不上），
+  手改 `rawprogramX.xml` 里的尺寸也不解决，设备只会停在 EDL。
+- 作者建议用 **binary 9 的 `S918BXXS9EZB6`（ZTO）** 做底包，而不是 One UI 8.5 的包 ——
+  理由是 8.5 会把 Download 模式也弄没。我们的机器已经是 A(=10)，走这条路就是**纯 EDL 降级**。
+- 帖子里另有一位用户和我们的 **D2j 进不去 Download** 情况相同，说明这不是个例。
+- 关键数据点：有一位用户在 **One UI 8、binary 8** 上成功解锁过（KSA CSC），
+  所以"One UI 8 一律不可能"不是绝对的 —— 更可能是他们的 toggle 在更新后仍存活。
+  这也间接说明：只要能把带解锁代码的 ABL 弄回去，解锁流程本身是通的。
+
+### 本地已备
+
+`/tmp/fh/` 已下载：`S918B_Loader_alephgsm.com.elf`（真实 ELF，Sahara loader）、
+`SM-S918B_prog_firehose_ddr.elf`（Samsung 包了一层，`file` 认成 data）、`sm_s918b_prog_firehose_ddr.elf`。
 
 ## D. 老办法（已证实对本机无效）
 
