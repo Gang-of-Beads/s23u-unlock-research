@@ -1871,3 +1871,24 @@ DirtyInit 价值在于**多一条独立于 Ghostlock/KernelSU 的 root 通道**�
 **结论**：`param` / `devinfo` / `persistent` 里改什么都改变不了闸门，
 因为 ABL 每次都重新问 TA。这也解释了之前所有写入"能持久、但无效果"。
 真正要动的只有 TEE 里那份状态（⇒ 回到"要签名数据"的结论），或者让 EM bit3 置位。
+
+## 78. 渠道调研：官方有免费方向；泄漏证书依然没有
+
+### 官方（可执行）
+
+- Knox Guard **Trial 许可免费**：3 个月激活期 / 3 年设备期 / 30 席位，控制台自助生成
+  （`docs.samsungknox.com/admin/knox-guard/how-to-guides/manage-licenses/`）。
+- 设备过了 7 天窗口可自行在设备上打开 `guard.samsungknox.com` 点 **Enroll this device** 登记（KBA-1706）。
+- 状态流文档确认"标记完成 → Completing → Complete"，设备侧即 state 4 —— **正好是闸门放行的那个值**。
+- 第三方工具面板（Cheetah）也把 `Checking / Locked / Completed` 并列，Completed 就是解锁，
+  印证"到 4 就能过闸门"的行业做法。
+
+⇒ 新方案 `docs/kg-official-enroll.md`：**自建试用租户 → 登记本机 → 标记完成 → state 4 → 刷机**。
+收益是真策略被 TA 接受，不依赖任何假数据。
+
+### 泄漏（仍无）
+
+- 没有任何公开的三星 KG / EM 签名证书或私钥；搜 `kgEnrollCrt`、`.pem`、俄语"сертификат"都只有文档和商业工具。
+- 唯一的大件是 2022 Lapsus$ 泄漏的 **190 GB 三星源码种子**（`bbaranoff/samsung-leak-lapsus-` 仅存 torrent）。
+  里面是源码（含 bootloader/TZ），但**不含签名私钥**，价值在于算法细节（如 D2 OTP 验证），不是"通用钥匙"。
+- `opensource.samsung.com` 有官方开源包（内核等），同样无签名材料。
