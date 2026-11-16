@@ -12,7 +12,7 @@
 | `oem_lock.txt` | `service call oem_lock 1/2/3/4/7` 原始应答 |
 | `restriction*.txt` | `no_oem_unlock` 用户限制是否存在（存在） |
 | `persistent_header_and_param_strings.txt` | `persistent` 头部 hex（PDP magic `0x19901873` 在 `0x20`）+ `param` 可读串 |
-| `device.txt` | 指纹 / 序列号 / CSC / hardware |
+| `device.txt` | 指纹 / 序列号（脱敏） / CSC / hardware |
 
 关键观察：
 

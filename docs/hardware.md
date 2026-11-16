@@ -14,6 +14,9 @@
 | 序列号 | `R5CWAXXXXX` |
 | AP serial | `0x000004376D249F29` |
 | Samsung DID | `2004376D249F2911`（em.did） |
+
+> 序列号与 IMEI 已脱敏为同长度占位符（`R5CWAXXXXX` / `3XXXXXXXXXXXXXX`），
+> 字段长度与真实值一致，脚本里的 `b'R5CWAXXXXX'` 可直接替换成自己的。
 | CSC / sales code | `XSG`（阿联酋） |
 | 硬件版本 | `ro.boot.revision = 13`，subpcb `8`，slavepcb `3` |
 | 颜色/存储 | 未记录（外观为黑色系） |
