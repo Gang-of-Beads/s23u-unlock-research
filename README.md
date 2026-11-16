@@ -1,5 +1,8 @@
 # SM-S918B（S23 Ultra，中东版）解锁 + Root 实录
 
+> 研究向记录：所有改动都有备份与回退，但不保证你的机器变砖后能救回来。
+
+
 目标：解锁 bootloader 并取得持久 root。**结论：本地能做的已经做完，解锁卡在三星签名侧。**
 
 ## 结论先说
@@ -12,7 +15,18 @@
 3. 本机 KG 是 `Active`、真实 lookup 返回 `registered:false`（**未登记进任何租户**）；
    `Locked→Active` 是靠登录三星账号恢复的（服务器侧状态）。
 4. 「降级 One UI 7 再解锁」对本机不可行：rollback index 已是 `10`，One UI 7 只到 binary 8/9。
-5. 现在只剩三条外部依赖的路（`docs/summary.md`）：KG 进 1/4、三星签名的 **EM token**、动硬件走 EDL。
+5. 只剩外部依赖的路（`docs/summary.md`、`docs/unlock-routes.md`）：让 TEE 里的 KG 状态进 1/4、
+   三星签名的 **EM token**、或动硬件走 EDL。
+
+## 2026-11-16 更新：两条新线索（都不需要私钥）
+
+- **D2 死锁有解**：D2 错误屏按住 Power + `Vol+ ×8 / Vol- ×5 / Vol+ ×9` 会打开官方隐藏的
+  **OTP/QR 授权屏**，把 QR 交给有权限方换 8 位数即可进 Download，不用清数据。
+  实机已确认存在，信封结构 541 B = 29 B 明文头 + 512 B RSA-4096-OAEP（`evidence/20261116-d2-otp/`、
+  `docs/d2-kg-lock.md`）。
+- **官方免费路线**：Knox Guard 试用许可是免费的（30 席位 / 3 个月），可自建租户、让设备
+  `Enroll this device`、再标记完成 → 设备 state 4 → 闸门放行（`docs/kg-official-enroll.md`）。
+- 渠道调研：**没有**公开泄漏的 KG/EM 证书私钥；唯一大件是 Lapsus$ 的 190 GB 源码种子（`docs/findings.md` §78）。
 
 ## 设备与软件基线
 
@@ -25,7 +39,7 @@
 | 原始构建 | `S918BXXUAGZIF`（One UI 9 / Android 17，二进制位 `A`） |
 | warranty_bit | 1（Knox 熔断，Samsung Pay / Pass / Secure Folder 不再可用） |
 
-## 当前状态（2026-11-14）
+## 当前状态（2026-11-16）
 
 - 系统：One UI 8.5 正常开机，数据全清；KG `Active`、`green`、无 PIN、keyguard 已禁用。
 - Root：KernelSU-Next **临时 root** 可稳定复现（BOPE 载荷，约 60 s），**重启即失效**；
@@ -37,6 +51,8 @@
 - 开机 USB 默认模式已改为 **文件传输 + adb**（`settings put secure default_usb_configuration mtp`，
   两次重启验证稳定；用 `persist.sys.usb.config` 会被覆盖，见 `docs/findings.md` §29）。
 - `steady` 分区被写入过实验数据，原样备份在 `/data/local/tmp/steady.bak`。
+- KG 仍 `Active`、`green`、无 PIN；D2 OTP 屏实机验证后已正常回到系统（`deviceLocked=0`、KG 未掉）。
+- 临时 root 重启即失效，用 `python3 scripts/temp_root.py` 恢复；DirtyInit 是另一条独立的 init 域通道（`docs/findings.md` §76）。
 
 ## 已打通 / 卡点
 
