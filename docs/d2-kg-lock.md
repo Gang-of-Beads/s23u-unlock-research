@@ -235,3 +235,31 @@ KG `Active`、Wi-Fi 开、`locksettings get-disabled = true` 的前提下：
 解码结构确认为 **541 字节 = 29 字节明文头 + 512 字节 RSA-4096 OAEP 密文**，
 头部是 `D2` + PID `10004` + 版本 `S918BXXSAFZH3` + 反引号填充（固定宽度），
 与文档字段表一致；OTP 只能私钥侧算，本地拿不到。
+
+---
+
+## D2 应急一页流程（照着做）
+
+> 适用：设备停在 D2 / "SECURE CHECK FAIL" 类红屏，进不去 Download。
+> 前提：**不要**在这时候清数据，也不要反复断电。
+
+1. **确认是 D2**：屏幕有红色警示 + 只有按键提示；`adb devices` 为空、`ioreg` 无 `04e8`。
+2. **开隐藏授权屏**：按住 Power 不放 → Vol+ ×8 → Vol- ×5 → Vol+ ×9（每次松开音量键，Power 全程不松）。
+3. **拍下 QR**（整屏，含 QR），这就是要递交的东西。
+4. **换码**：把 QR 文本交给有权限的一方（三星服务中心 / 代签商家），拿回 8 位数字。
+5. **输入**：音量键移动、Power 选择，输完选 `DONE`。**最多 3 次**，错了就重开（会换新 QR）。
+6. **进 Download**：放行后按提示进 Download 做要做的刷写。
+7. **退出**：菜单里选 `POWER OFF`；重启后回到系统。
+
+事后核对（在系统里）：
+
+```bash
+adb shell getprop knox.kg.state          # 应为 Active
+adb shell getprop ro.boot.verifiedbootstate   # 应为 green
+adb shell 'su -c "dumpsys trust | grep deviceLocked"'  # 应为 deviceLocked=0
+```
+
+若要顺手取消锁屏：`adb shell locksettings clear --old <pin>`，再 `locksettings set-disabled true`。
+重启会掉临时 root，用 `python3 scripts/temp_root.py` 重来。
+
+信封格式与本次实机样本见 `evidence/20261116-d2-otp/`（541 B = 29 B 明文头 + 512 B RSA-4096-OAEP）。
