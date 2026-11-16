@@ -1814,3 +1814,41 @@ One UI 8 起三星把 OEM 解锁相关代码**从 bootloader 里整体剥掉**�
   我们用 Alephgsm 的 loader 更靠谱。
 - `SM-S918U unbrick tool ... using QFIL`（4662915）给出了 EDL 进法：关机 → 同时按住 Vol+/Vol- → 插线，
   不行再短接/用 EDL 线；包内带 rawprogram/patch xml（U2 版），是组包结构的现成参考。
+
+## 76. DirtyInit 实测：拿到了 `u:r:init:s0`，可用但只算补充通道
+
+按 XDA 4802242 试装了 DirtyInit（APK `com.dirty.init`，279 468 B，
+`2a7515a60f4e63004469f4d2d6ff93b900b660c547eaeeb0369e88d5bb7d0607`）。
+
+流程与结果（设备 AFZH3 直接命中，无需适配）：
+
+1. 安装 → 启动 → 授予「所有文件访问」；
+2. `EXECUTE EXPLOIT`：日志显示它自己解析 `/system/libbase.so` 的 `.dynsym`、
+   定位 `~LogMessage`（892 B）、算 CBC IV、37 次 16 B 块写，“Verified 576/576 bytes”，176 ms 完成；
+3. `EXTRACT CLI` → `/sdcard/dirtyinit`，拷到 `/data/local/tmp` 后执行：
+
+```
+$ dirtyinit id
+uid=0(root) gid=0(root) groups=3009(readproc) context=u:r:init:s0
+```
+
+是真的 init 域，`setprop persist.*` 生效、`dmesg` 可读、`/dev/block/by-name/*` 可读写，
+配合把 `kptr_restrict` 置 0 后 `/proc/kallsyms` 也能取到真实地址。
+
+### 但它的限制很硬
+
+- **没有 sh**：`dirtyinit sh -c ...` → `sh: command not found`，所以 `service`、`cmd`、`getprop` 这类
+  脚本/wrapper 全部用不了；只能直接 exec 二进制，不方便。
+- `/system` 仍是只读；`overlay setup /system` 在本机失败（`setting /system to private propagation:
+  MS_PRIVATE Invalid argument`，之后 `scratch partition setup failed`），`/dev/.overlay` 里只留下
+  之前某次成功 mkfs 的 `lost+found`。
+- `dexec`（域跳转）对 `/system/bin/lshal` 一律 `setexeccon failed` / `execve: Permission denied`。
+- `service list` 里看不到 `engmode`/`kgta`，和之前 shell 域一致。
+- 网上反馈的"一分钟左右重启"本机暂未复现（跑了 45 s 以上仍稳定），但它是页面缓存级利用，
+  不跨重启。
+
+### 结论
+
+DirtyInit 价值在于**多一条独立于 Ghostlock/KernelSU 的 root 通道**（Ghostlock 失效时可用），
+以及 init 域下的属性/dmesg/kallsyms 访问；但因为缺 sh 和不支持 overlay，
+**不能替代现在的 ksu root**，也不改变 TZ/BL 的结论。
