@@ -1775,3 +1775,42 @@ One UI 8 起三星把 OEM 解锁相关代码**从 bootloader 里整体剥掉**�
 - **反例**：有一位用户在 One UI 8 / binary 8（KSA）上**成功解锁**过 —— 说明"One UI 8 绝对不可能"不成立，
   更像是"更新后 toggle 是否还活着"的个体差异，也说明带解锁代码的 ABL 一旦回去流程就能走。
 - 另有一位用户和我们一样卡在 D2j 进不去 Download，佐证 D2 不是我们的用法问题。
+
+## 75. 版块巡帖（opencli 实录）：D2 其实有隐藏 OTP 屏、免解锁 root 已有多个成熟项目
+
+用 opencli 把 S23U 版块近 5 页 + 关键词帖全过了一遍，除了已知的 EDL 帖和"One UI 9 无解锁"，
+捞到三条真正有价值的东西：
+
+### 75.1 D2 屏有隐藏的 OTP/QR 授权界面（直接打我们的痛点）
+
+仓库 `soumarcelino/Samsung-D2-Hidden-OTP-QR-Gate-to-Download-Mode`（2026-11-12 更新）记录：
+在 D2 错误屏上**按住 Power**，然后 Vol+ ×8、Vol- ×5、Vol+ ×9，会打开隐藏授权屏，
+显示一个 QR（含 SI + 32 字节 UEFI RNG nonce，外层 RSA-4096-OAEP）并有 8 位 OTP 输入框，
+输对后本会话即可进 Download。证据来自 SAFZI1/ZZI8（同机型 S918B）。
+
+- 意义：我们之前认定"设了锁屏密码就进不了 Download"，其实还有这条授权通道；
+  只是固件里**只有公钥**，OTP 得由三星服务端（或服务中心）签发，离线造不出来。
+- 该仓库的公开阻塞点也是同一句话：缺私钥/缺一次真实授权交换记录。
+- 但对我们有直接可用性：**去售后/或找代签服务**时，可以让对方直接在隐藏屏输码，
+  这比"恢复出厂再进 Download"温和得多。
+
+### 75.2 免解锁 root 已有多个可用项目（比我们手上的更成熟）
+
+- `[ROOT] DirtyInit`（XDA 4802242，作者 combeng6th）：EL0 exploit，安装 App 点 EXECUTE 再经 ADB 跑二进制，
+  直接拿到 **u:r:init:s0**。作者称在 Note20U…S26U 全系测过，开源在 `combeng6th/DirtyInit`。
+  已知问题：默认 `cp` 目标在只读根，要 `cp /sdcard/dirtyinit /data/local/tmp/dirtyinit`；
+  有人在部分机型上遇到一分钟后重启、adb 掉 root。
+- `DiamondFox`（XDA 4802243）：专用载体 App，带 su 兼容层、root 授权、版本检测，
+  但**只支持 S918BXXUAZZHL / ZZI8 这两个构建**（我们是 AFZH3，暂不匹配）。
+- `Ghostlock`（XDA 4798153）就是我们已在用的 Root My Galaxy 那一套，来源仓库
+  `soumarcelino/Root-My-Galaxy-SM-S918B`，payload 为 FZF5 移植。
+
+结论：**root 侧不缺方案**，如果要"更稳的临时 root"，DirtyInit 值得试（init 域权限远高于我们现在拿到的）。
+
+### 75.3 其它
+
+- 版块里 `OEM Unlock - One UI 9`（4807607）的公认答复就是"只能临时 root"——与我们的判断一致。
+- 有 `Samsung Qualcomm Firehoses`（4806291）汇总帖，但列表里**没有 S918B**，只有 S911B/S916B 等；
+  我们用 Alephgsm 的 loader 更靠谱。
+- `SM-S918U unbrick tool ... using QFIL`（4662915）给出了 EDL 进法：关机 → 同时按住 Vol+/Vol- → 插线，
+  不行再短接/用 EDL 线；包内带 rawprogram/patch xml（U2 版），是组包结构的现成参考。
