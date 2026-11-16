@@ -1852,3 +1852,22 @@ uid=0(root) gid=0(root) groups=3009(readproc) context=u:r:init:s0
 DirtyInit 价值在于**多一条独立于 Ghostlock/KernelSU 的 root 通道**（Ghostlock 失效时可用），
 以及 init 域下的属性/dmesg/kallsyms 访问；但因为缺 sh 和不支持 overlay，
 **不能替代现在的 ksu root**，也不改变 TZ/BL 的结论。
+
+## 77. ABL 里两处判定的**数据来源**定位：都来自 TEE，写分区没用
+
+顺着 `FUN_000742f0`（KG 闸门）往上看，找到真正的数据源：
+
+- 调用链在 `0x6c8b4` 处先 `bl 0x6ae00`，返回值存进 `x21`（KG 上下文），
+  闸门函数随后读 `[x21, #0x154]` 当"KG state"。也就是**状态是运行时从 KG TA 取的**，
+  不是从某个分区读的。
+- EM 那条：`0x78638` 调 `0x78230` 填充全局位图 `0x11fc60`（`get_bit` = `0x789e0` 就是读这个位图，
+  `lsr w10, w0, #6` + `ldr` + `lsr`/`and`），随后 `0x78664` 把 32 字节 OR 起来判断"有没有任何 EM bit"。
+- 另有一处 `0x6ca00` 直接 `get_bit(3)` 走 EM 快捷分支 —— 印证 EM bit3 一旦置位，
+  **KG 闸门就被绕开**。
+
+对照设备侧属性也能看出状态是 BL 从 TEE 拿的：`ro.boot.kg = 0x2`、`ro.boot.kg.ap`（设备种子）、
+`ro.boot.kg.bit = 01` 都是 androidboot 参数。
+
+**结论**：`param` / `devinfo` / `persistent` 里改什么都改变不了闸门，
+因为 ABL 每次都重新问 TA。这也解释了之前所有写入"能持久、但无效果"。
+真正要动的只有 TEE 里那份状态（⇒ 回到"要签名数据"的结论），或者让 EM bit3 置位。
