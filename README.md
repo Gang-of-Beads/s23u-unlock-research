@@ -74,9 +74,15 @@
 ② 真 EM token（格式已公开，缺三星工程叶子证书+私钥）；③ EDL 兜底（需动硬件，且仍要处理 AVB）；
 ④ TZ 漏洞研究；⑤ One UI 7 降级（ARB 必拒，属回头路）。
 
+## 从哪读起
+
+1. 只想知道"能不能解锁、还剩什么路" → [docs/unlock-routes.md](docs/unlock-routes.md)
+2. 想复现实验结论 → `docs/findings.md`（按 §编号，每条都带证据与错误码）
+3. 要动手 → `docs/procedure.md`、`docs/temp-root.md`，动 KG 前先读 `docs/d2-kg-lock.md`
+
 ## 文档
 
-- [docs/unlock-routes.md](docs/unlock-routes.md) — 还能走的解锁路线与判断（EM token / EDL / combo）
+- [docs/unlock-routes.md](docs/unlock-routes.md) — 还能走的解锁路线与判断（EM token / EDL / combo）＋ L1–L8 线索台账
 
 - `docs/summary.md` — **阶段总结：能力、工具、证据、卡点（先看这个）**
 - `docs/findings.md` — 全部实测结论与错误码（含每条的证据）
